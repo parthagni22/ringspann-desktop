@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database.connection import init_database
 from app.utils.logger import setup_logger
-from app.api import auth_api, customer_api, quotation_api, analytics_api, project_api
+from app.api import auth_api, customer_api, quotation_api, analytics_api, project_api, commercial_quote_api, pdf_generator
 
 logger = setup_logger()
 
