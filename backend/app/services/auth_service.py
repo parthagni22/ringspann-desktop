@@ -1,5 +1,5 @@
 """
-Authentication Service - Complete Implementation
+Authentication Service - FIXED
 """
 from app.database.connection import SessionLocal
 from app.models.user import User, UserRegion
@@ -16,7 +16,7 @@ class AuthService:
         """Register new user"""
         db = SessionLocal()
         try:
-            # Validate email format
+            # VALIDATE: Email must end with @ringspann.com
             if not username.endswith('@ringspann.com'):
                 raise Exception("User ID must end with @ringspann.com")
             
@@ -31,10 +31,10 @@ class AuthService:
             except KeyError:
                 raise Exception(f"Invalid region: {region}")
             
-            # Create new user
+            # Create new user (username is already complete with @ringspann.com)
             new_user = User(
                 name=name,
-                username=username,
+                username=username,  # Use as-is, already has @ringspann.com
                 region=user_region,
                 password_hash=hash_password(password),
                 role='user',
@@ -45,7 +45,7 @@ class AuthService:
             db.commit()
             db.refresh(new_user)
             
-            logger.info(f"✅ New user registered: {username}")
+            logger.info(f"New user registered: {username}")
             
             return new_user.to_dict()
             
@@ -77,7 +77,7 @@ class AuthService:
             # Set current user
             self.current_user = user.to_dict()
             
-            logger.info(f"✅ User logged in: {username}")
+            logger.info(f"User logged in: {username}")
             
             return self.current_user
             

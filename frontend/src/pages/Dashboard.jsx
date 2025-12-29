@@ -4,17 +4,32 @@ import { useNavigate } from 'react-router-dom';
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [deleteModal, setDeleteModal] = useState({ show: false, project: null });
 
   useEffect(() => {
-    // Check authentication
     const currentUser = localStorage.getItem('currentUser');
     if (!currentUser) {
       navigate('/login');
       return;
     }
-
     setUser(JSON.parse(currentUser));
+    loadRecentProjects();
   }, [navigate]);
+
+  const loadRecentProjects = async () => {
+    try {
+      const response = await window.eel.get_recent_projects(10)();
+      if (response.success) {
+        setProjects(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to load projects:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     await window.eel.logout()();
@@ -22,87 +37,361 @@ const Dashboard = () => {
     navigate('/login');
   };
 
+  const handleNewProject = () => {
+    // Navigate to new quotation form
+    navigate('/quotation/new');
+  };
+
+  const handleUpload = () => {
+    // Handle file upload
+    alert('Upload functionality coming soon');
+  };
+
+  const handleAnalytics = () => {
+    // Navigate to analytics
+    navigate('/analytics');
+  };
+
+  const handleProjectClick = (project) => {
+    // Navigate to quotation edit/view
+    navigate(`/quotation/${project.id}`);
+  };
+
+  const confirmDelete = (project, e) => {
+    e.stopPropagation();
+    setDeleteModal({ show: true, project });
+  };
+
+  const handleDelete = async () => {
+    if (!deleteModal.project) return;
+
+    try {
+      const response = await window.eel.delete_project(deleteModal.project.id)();
+      
+      if (response.success) {
+        setProjects(projects.filter(p => p.id !== deleteModal.project.id));
+        setDeleteModal({ show: false, project: null });
+        alert('Project deleted successfully');
+      } else {
+        alert('Failed to delete project: ' + response.error);
+      }
+    } catch (error) {
+      alert('Failed to delete project');
+    }
+  };
+
   if (!user) {
-    return <div>Loading...</div>;
+    return <div style={styles.loading}>Loading...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Ringspann Desktop</h1>
-            <p className="text-sm text-gray-600">Quotation Management System</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">{user.name}</p>
-              <p className="text-xs text-gray-500">{user.region} Region</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Logout
+    <div style={styles.container}>
+      {/* Orange Header */}
+      <div style={styles.header}>
+        <div style={styles.headerContent}>
+          <h1 style={styles.headerTitle}>Ringspann Industrial Suite</h1>
+          <button onClick={handleLogout} style={styles.logoutBtn}>
+            Logout
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={styles.mainContent}>
+        {/* Project Actions */}
+        <div style={styles.actionsSection}>
+          <h2 style={styles.sectionTitle}>Select Project Action</h2>
+          <div style={styles.actionButtons}>
+            <button onClick={handleNewProject} style={styles.actionBtn}>
+              New
+            </button>
+            <button onClick={handleUpload} style={styles.actionBtn}>
+              Upload
+            </button>
+            <button onClick={handleAnalytics} style={styles.actionBtn}>
+              Analytics
             </button>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Customer Management */}
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="text-indigo-600 mb-4">
-              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Customer Management</h3>
-            <p className="text-gray-600 text-sm">Manage customer information and details</p>
-          </div>
-
-          {/* Quotations */}
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="text-green-600 mb-4">
-              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Quotations</h3>
-            <p className="text-gray-600 text-sm">Create and manage quotations</p>
-          </div>
-
-          {/* Analytics */}
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="text-purple-600 mb-4">
-              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0h2a2 2 0 012 2v6a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Analytics</h3>
-            <p className="text-gray-600 text-sm">View business insights and reports</p>
+        {/* Recent Projects */}
+        <div style={styles.projectsSection}>
+          <h3 style={styles.projectsTitle}>Recent Projects</h3>
+          <div style={styles.tableContainer}>
+            <table style={styles.table}>
+              <thead>
+                <tr style={styles.tableHeader}>
+                  <th style={styles.th}>Project Name</th>
+                  <th style={styles.th}>Quotation No.</th>
+                  <th style={styles.th}>Customer</th>
+                  <th style={styles.th}>Last Modified</th>
+                  <th style={styles.th}>Status</th>
+                  <th style={styles.th}>Date Created</th>
+                  <th style={styles.th}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="7" style={styles.noData}>Loading...</td>
+                  </tr>
+                ) : projects.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" style={styles.noData}>No projects found</td>
+                  </tr>
+                ) : (
+                  projects.map((project) => (
+                    <tr
+                      key={project.id}
+                      onClick={() => handleProjectClick(project)}
+                      style={styles.tableRow}
+                    >
+                      <td style={styles.td}>{project.name}</td>
+                      <td style={styles.td}>{project.quotationNo}</td>
+                      <td style={styles.td}>{project.customer}</td>
+                      <td style={styles.td}>{project.lastModified}</td>
+                      <td style={styles.td}>{project.status}</td>
+                      <td style={styles.td}>{project.dateCreated}</td>
+                      <td style={styles.td}>
+                        <button
+                          onClick={(e) => confirmDelete(project, e)}
+                          style={styles.deleteBtn}
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
+      </div>
 
-        {/* Welcome Message */}
-        <div className="mt-8 bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Welcome, {user.name}! 👋
-          </h2>
-          <p className="text-gray-600">
-            You are logged in as <strong>{user.username}</strong> from the{' '}
-            <strong>{user.region}</strong> region.
-          </p>
-          <p className="text-gray-600 mt-2">
-            Select a module above to get started with managing quotations.
-          </p>
+      {/* Delete Confirmation Modal */}
+      {deleteModal.show && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modal}>
+            <h3 style={styles.modalTitle}>Confirm Delete</h3>
+            <p style={styles.modalText}>
+              This quotation will be permanently deleted. Are you sure?
+            </p>
+            <div style={styles.modalButtons}>
+              <button
+                onClick={() => setDeleteModal({ show: false, project: null })}
+                style={styles.cancelBtn}
+              >
+                Cancel
+              </button>
+              <button onClick={handleDelete} style={styles.confirmDeleteBtn}>
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
-      </main>
+      )}
+
+      {/* Footer */}
+      <div style={styles.footer}>
+        <span>Analytics dashboard opened.</span>
+      </div>
     </div>
   );
+};
+
+const styles = {
+  container: {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    background: '#f5f5f5',
+  },
+  header: {
+    background: '#e85d04',
+    padding: '16px 0',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+  },
+  headerContent: {
+    maxWidth: '1400px',
+    margin: '0 auto',
+    padding: '0 20px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    color: 'white',
+    fontSize: '28px',
+    fontWeight: 'bold',
+    margin: 0,
+  },
+  logoutBtn: {
+    background: '#2c3e50',
+    color: 'white',
+    border: 'none',
+    padding: '10px 24px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: 600,
+  },
+  mainContent: {
+    flex: 1,
+    maxWidth: '1400px',
+    margin: '0 auto',
+    padding: '40px 20px',
+    width: '100%',
+  },
+  actionsSection: {
+    background: 'white',
+    borderRadius: '8px',
+    padding: '40px',
+    marginBottom: '30px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    textAlign: 'center',
+  },
+  sectionTitle: {
+    fontSize: '32px',
+    fontWeight: 600,
+    color: '#333',
+    marginBottom: '30px',
+  },
+  actionButtons: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '20px',
+  },
+  actionBtn: {
+    background: '#e85d04',
+    color: 'white',
+    border: 'none',
+    padding: '16px 40px',
+    fontSize: '18px',
+    fontWeight: 600,
+    borderRadius: '4px',
+    cursor: 'pointer',
+    minWidth: '120px',
+  },
+  projectsSection: {
+    background: 'white',
+    borderRadius: '8px',
+    padding: '30px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+  },
+  projectsTitle: {
+    fontSize: '20px',
+    fontWeight: 600,
+    color: '#333',
+    marginBottom: '20px',
+    paddingBottom: '10px',
+    borderBottom: '2px solid #e0e0e0',
+  },
+  tableContainer: {
+    overflowX: 'auto',
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+  },
+  tableHeader: {
+    background: '#f8f9fa',
+  },
+  th: {
+    padding: '12px',
+    textAlign: 'left',
+    fontWeight: 600,
+    color: '#555',
+    borderBottom: '2px solid #dee2e6',
+  },
+  tableRow: {
+    cursor: 'pointer',
+    transition: 'background 0.2s',
+  },
+  td: {
+    padding: '12px',
+    borderBottom: '1px solid #dee2e6',
+    color: '#333',
+  },
+  deleteBtn: {
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '18px',
+    padding: '4px 8px',
+  },
+  noData: {
+    padding: '40px',
+    textAlign: 'center',
+    color: '#999',
+  },
+  loading: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '100vh',
+    fontSize: '18px',
+  },
+  footer: {
+    background: '#2c3e50',
+    color: 'white',
+    padding: '12px 20px',
+    fontSize: '13px',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  modal: {
+    background: 'white',
+    borderRadius: '8px',
+    padding: '30px',
+    maxWidth: '400px',
+    width: '90%',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+  },
+  modalTitle: {
+    fontSize: '20px',
+    fontWeight: 600,
+    color: '#333',
+    marginBottom: '15px',
+  },
+  modalText: {
+    fontSize: '14px',
+    color: '#666',
+    marginBottom: '25px',
+  },
+  modalButtons: {
+    display: 'flex',
+    gap: '10px',
+    justifyContent: 'flex-end',
+  },
+  cancelBtn: {
+    background: '#6c757d',
+    color: 'white',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+  },
+  confirmDeleteBtn: {
+    background: '#dc3545',
+    color: 'white',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+  },
 };
 
 export default Dashboard;
