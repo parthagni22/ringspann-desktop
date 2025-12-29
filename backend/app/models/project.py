@@ -1,33 +1,31 @@
 """
 Project Model
 """
-from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, DateTime, Text, Enum as SQLEnum, ForeignKey
+from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from datetime import datetime
-from app.models.base import Base, TimestampMixin
+from app.models.base import Base
 import enum
 
 class ProjectStatus(enum.Enum):
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
+    draft = "draft"
+    in_progress = "in_progress"
+    completed = "completed"
+    archived = "archived"
 
-class Project(Base, TimestampMixin):
+class Project(Base):
     __tablename__ = 'projects'
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    quotation_number = Column(String(50), unique=True, nullable=False, index=True)
-    customer_id = Column(Integer, ForeignKey('customers.id'), nullable=False)
-    customer_name = Column(String(200), nullable=False, index=True)  # Denormalized for analytics
-    status = Column(Enum(ProjectStatus), default=ProjectStatus.IN_PROGRESS)
-    date_created = Column(DateTime, default=datetime.utcnow, index=True)
-    created_by = Column(String(100))
-    notes = Column(Text)
+    id = Column(Integer, primary_key=True, index=True)
+    quotation_number = Column(String(100), unique=True, nullable=False, index=True)
+    customer_name = Column(String(200), nullable=False)
+    customer_id = Column(Integer, ForeignKey('customers.id'), nullable=True)
+    status = Column(SQLEnum(ProjectStatus), default=ProjectStatus.draft)
+    requirements_data = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
     customer = relationship("Customer", back_populates="projects")
-    commercial_quotations = relationship("CommercialQuotation", back_populates="project", cascade="all, delete-orphan")
-    technical_quotations = relationship("TechnicalQuotation", back_populates="project", cascade="all, delete-orphan")
-    
-    def __repr__(self):
-        return f"<Project {self.quotation_number}>"
+    commercial_quotations = relationship("CommercialQuotation", back_populates="project")
+    technical_quotations = relationship("TechnicalQuotation", back_populates="project")
