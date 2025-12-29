@@ -74,6 +74,45 @@ def search_customers(search_term: str):
         return {'success': False, 'error': str(e)}
     finally:
         db.close()
+        
+        
+@eel.expose
+def create_project(quotation_number: str, customer_name: str):
+    """Create new project"""
+    db = SessionLocal()
+    try:
+        # Check if quotation number exists
+        exists = db.query(Project).filter(
+            Project.quotation_number == quotation_number
+        ).first()
+        
+        if exists:
+            return {'success': False, 'error': 'Quotation number already exists'}
+        
+        # Create project
+        project = Project(
+            quotation_number=quotation_number,
+            customer_name=customer_name,
+            status='draft'
+        )
+        db.add(project)
+        db.commit()
+        db.refresh(project)
+        
+        return {
+            'success': True,
+            'data': {
+                'id': project.id,
+                'quotationNo': project.quotation_number,
+                'customer': project.customer_name
+            }
+        }
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Create project failed: {e}")
+        return {'success': False, 'error': str(e)}
+    finally:
+        db.close()        
 
 @eel.expose
 def save_requirements(project_id: int, requirements: list):

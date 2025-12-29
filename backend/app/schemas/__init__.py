@@ -1,3 +1,0 @@
-"""
-Pydantic Schemas for Validation
-"""
