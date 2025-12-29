@@ -1,8 +1,8 @@
 """
-Database Seeding - Default Data
+Database Seeding - Default Admin User (Updated)
 """
 from app.database.connection import SessionLocal
-from app.models.user import User
+from app.models.user import User, UserRegion
 from app.utils.password import hash_password
 from app.utils.logger import setup_logger
 
@@ -14,14 +14,14 @@ def create_default_admin():
     
     try:
         # Check if admin exists
-        existing_admin = db.query(User).filter(User.username == 'admin').first()
+        existing_admin = db.query(User).filter(User.username == 'admin@ringspann.com').first()
         
         if not existing_admin:
             admin = User(
-                username='admin',
-                email='admin@ringspann.com',
+                name='Administrator',
+                username='admin@ringspann.com',
+                region=UserRegion.NORTH,  # Default region
                 password_hash=hash_password('admin123'),
-                full_name='Administrator',
                 role='admin',
                 is_active=True
             )
@@ -30,7 +30,7 @@ def create_default_admin():
             db.commit()
             
             logger.info("✅ Default admin user created")
-            logger.info("   Username: admin")
+            logger.info("   User ID: admin@ringspann.com")
             logger.info("   Password: admin123")
             logger.info("   ⚠️  Please change password after first login!")
         else:
