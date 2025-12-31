@@ -18,12 +18,4 @@ def create_commercial_quotation(data: dict):
         logger.error(f"Create commercial quotation failed: {e}")
         return {'success': False, 'error': str(e)}
 
-@eel.expose
-def generate_commercial_pdf(quotation_id: int):
-    """Generate commercial PDF"""
-    try:
-        pdf_path = quotation_service.generate_commercial_pdf(quotation_id)
-        return {'success': True, 'data': {'path': pdf_path}}
-    except Exception as e:
-        logger.error(f"Generate PDF failed: {e}")
-        return {'success': False, 'error': str(e)}
+# REMOVED: generate_commercial_pdf - now in commercial_quote_api.py
