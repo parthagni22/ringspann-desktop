@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import EditTermsModal from '../components/EditTermsModal';
+import EditGeneralConditionsModal from '../components/EditGeneralConditionsModal';
 
 const CommercialQuote = () => {
   const { projectId } = useParams();
@@ -11,6 +12,8 @@ const CommercialQuote = () => {
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [currentTerms, setCurrentTerms] = useState('');
+  const [isGeneralConditionsModalOpen, setIsGeneralConditionsModalOpen] = useState(false);
+  const [currentGeneralConditions, setCurrentGeneralConditions] = useState('');
   
   const [formData, setFormData] = useState({
     to: '',
@@ -265,6 +268,34 @@ const CommercialQuote = () => {
     }
   };
 
+  const handleOpenGeneralConditionsModal = async () => {
+    try {
+      const result = await window.eel.get_general_conditions(project.quotation_number)();
+      if (result.success && result.data) {
+        setCurrentGeneralConditions(result.data);
+      }
+      setIsGeneralConditionsModalOpen(true);
+    } catch (error) {
+      console.error('Error loading general conditions:', error);
+      setIsGeneralConditionsModalOpen(true);
+    }
+  };
+
+  const handleSaveGeneralConditions = async (conditionsText) => {
+    try {
+      const result = await window.eel.save_general_conditions(project.quotation_number, conditionsText)();
+      if (result.success) {
+        setCurrentGeneralConditions(conditionsText);
+        alert('General Conditions saved successfully!');
+      } else {
+        alert('Failed to save: ' + result.message);
+      }
+    } catch (error) {
+      console.error('Error saving general conditions:', error);
+      alert('Failed to save general conditions');
+    }
+  };
+
   const calculateSubtotal = () => {
     return formData.items.reduce((sum, item) => sum + (item.total_price || 0), 0);
   };
@@ -507,7 +538,7 @@ const CommercialQuote = () => {
           <div style={styles.bottomButtons}>
             <button style={styles.btn} onClick={saveCommercialQuote}>Save Changes</button>
             <button style={styles.btn} onClick={handleOpenTermsModal}>Edit Terms & Conditions</button>
-            <button style={styles.btn}>Edit General Conditions</button>
+            <button style={styles.btn} onClick={handleOpenGeneralConditionsModal}>Edit General Conditions</button>
             <button onClick={generatePDF} style={styles.btn}>Generate Commercial PDF</button>
           </div>
 
@@ -524,6 +555,14 @@ const CommercialQuote = () => {
         onClose={() => setIsTermsModalOpen(false)}
         onSave={handleSaveTerms}
         currentTerms={currentTerms}
+      />
+
+      {/* Edit General Conditions Modal */}
+      <EditGeneralConditionsModal 
+        isOpen={isGeneralConditionsModalOpen}
+        onClose={() => setIsGeneralConditionsModalOpen(false)}
+        onSave={handleSaveGeneralConditions}
+        currentConditions={currentGeneralConditions}
       />
     </div>
   );

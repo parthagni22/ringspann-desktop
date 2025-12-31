@@ -136,3 +136,54 @@ def get_quote_terms(quotation_number):
         return {'success': False, 'message': str(e)}
     finally:
         db.close()
+
+@eel.expose
+def save_general_conditions(quotation_number, conditions_text):
+    """Save general conditions for a quotation"""
+    db = SessionLocal()
+    try:
+        # Check if commercial quote exists
+        result = db.execute(text("""
+            SELECT id FROM commercial_quotations
+            WHERE quotation_number = :quotation_number
+        """), {'quotation_number': quotation_number}).fetchone()
+        
+        if result:
+            # Update existing
+            db.execute(text("""
+                UPDATE commercial_quotations 
+                SET general_conditions = :conditions, updated_at = CURRENT_TIMESTAMP
+                WHERE quotation_number = :quotation_number
+            """), {'conditions': conditions_text, 'quotation_number': quotation_number})
+        else:
+            # Create new entry
+            db.execute(text("""
+                INSERT INTO commercial_quotations (quotation_number, general_conditions, created_at, updated_at)
+                VALUES (:quotation_number, :conditions, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            """), {'quotation_number': quotation_number, 'conditions': conditions_text})
+        
+        db.commit()
+        return {'success': True, 'message': 'General conditions saved successfully'}
+    except Exception as e:
+        db.rollback()
+        return {'success': False, 'message': str(e)}
+    finally:
+        db.close()
+
+@eel.expose
+def get_general_conditions(quotation_number):
+    """Get saved general conditions for a quotation"""
+    db = SessionLocal()
+    try:
+        result = db.execute(text("""
+            SELECT general_conditions FROM commercial_quotations
+            WHERE quotation_number = :quotation_number
+        """), {'quotation_number': quotation_number}).fetchone()
+        
+        if result and result[0]:
+            return {'success': True, 'data': result[0]}
+        return {'success': True, 'data': None}
+    except Exception as e:
+        return {'success': False, 'message': str(e)}
+    finally:
+        db.close()

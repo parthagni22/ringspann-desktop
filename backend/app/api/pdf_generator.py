@@ -302,22 +302,47 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
         story.append(Paragraph("The following General Conditions of Delivery and Payment for Customers shall apply to all deliveries of our products, except as modified by express agreement accepted in writing by both parties", small_text))
         story.append(Spacer(1, 10))
         
+        # Load custom general conditions from database
+        custom_gc_text = None
+        try:
+            result = db.execute(text("""
+                SELECT general_conditions FROM commercial_quotations
+                WHERE quotation_number = :quotation_number
+            """), {'quotation_number': quotation_number}).fetchone()
+            if result and result[0]:
+                custom_gc_text = result[0]
+                print(f"DEBUG: Loaded custom general conditions from DB")  # Debug
+            else:
+                print(f"DEBUG: No custom general conditions found")  # Debug
+        except Exception as e:
+            print(f"Error loading general conditions: {e}")
+        
         # Conditions in 2 columns
-        gc_sections = [
-            ("1. Offer and Conclusion of Contract", "Only our offers and written confirmations will be decisive with respect to the scope and type of products delivered. The contract shall be deemed to have been concluded when we have accepted the order in writing; up to that time our quotation is without obligation. Measures, weights, illustrations and drawings are without obligation for the models, unless expressly confirmed by us in writing. Manufacturing and detail drawings will be supplied by us only if agreed upon before conclusion of the contract and confirmed by us in writing. An appropriate extra charge will be levied for the supply of such drawings. Where special tools and gauges or clamping devices are necessary in order to carry out a special order, these will be invoiced additionally, but shall remain our property after completion of the order."),
-            ("2. Terms of Delivery", "Prices quoted in our offer are EX Works Chakan Basis. All prices are excluding freight and insurance."),
-            ("3. Terms of Payment", "The Terms of Payment as applicable is mentioned in our offer. If the terms of payment laid down in the contract are not complied with, interest will be charged at a rate of 8% above the discount rate. In case of complaints with respect to products received, the customer is requested not suspend payment or make any deductions from the invoiced amount, unless liability is admitted by us."),
-            ("4. Retention of Title/Conditional Sale", "The products shall remain our property until payment has been made in full."),
-            ("5. Delivery", "The Delivery time is mentioned in our offer. The delivery period shall run from the date on which all technical particulars of the models in questions have been clarified and agreement has been reached between the parties with respect to all details of the contract. In case of unforeseeable circumstances which are beyond our control, i.e., force majeure, operating trouble, delayed deliveries by a subcontractor, rejects in our own plant or at a subcontractor's the delivery period shall be reasonably extended. We shall use our best efforts to honour confirmed delivery dates, which are only approximate. However, if in case of confirmed delivery dates there occurs a delay, an appropriate extension of time shall be granted. Claims for damages or penalties are, therefore, excluded unless its discussed in detail during the placement of the order on us."),
-            ("6. Packing & Forwarding Charges", "Packing & Forwarding charge @2% shall be applicable on the Basic price of the contract. In case of NIL P & F, then we shall adopt our standard packing method for the dispatch."),
-            ("7. Taxes", "GST shall be applicable as per the slab of HSN Code."),
-            ("8. Liability for Defects", "Deficiency claims have to be brought forward immediately upon receipt of the shipment. We warrant the quality of our products in such a manner as to replace or repair all components returned to us because they do not meet the specifications or cannot be used because of defects in workmanship. We accept liability only for defects in design or execution which have been caused by us. For defects in material supplied by us we accept liability only insofar as we should have discovered the deficiency in exercising due diligence. If we are responsible for the technical design, we will accept a deficiency claim only in case the customer can prove that our product does not meet the state of art due to our fault. We are not liable for damages due to normal wear and tear or misuse of the products supplied. Any further claims, such as compensation for direct or indirect damages to machinery or cost incurred in dismantling an assembly work, freight charges or penalties for delay etc. are not covered. Where products have been repaired, altered or overhauled without our consent our liability ceases."),
-            ("9. Warranty", "Unless otherwise agreed, we warrant the quality of design and manufacture utilizing good raw material for a period of 12 months from the date of commissioning or 18 months from the date of shipment, whichever is earlier, in such a way that we replace or repair free of charge defective components which have been returned to us."),
-            ("10. Cancellation of Contract", "The customer may cancel the contract only if, upon a reasonable extension of time we have failed to remedy a deficiency or if, in such case, we are, for whatever reason, unable to undertake necessary corrections or to supply a replacement part. In the event that the contract should be cancelled by the customer without our fault, the customer shall reimburse to us, without delay, the invoice value of such contract after deduction of the direct costs saved by us as a result of the cancellation."),
-            ("11. Purchasing Conditions of Customer", "Purchasing conditions of the customer which are not in compliance with these General Conditions of Delivery and Payment, must be accepted by us in writing in order to be binding. The other provisions of these conditions remain in full force and effect."),
-            ("12. Test Certificates & Warranty Certificate", "We shall submit our standard Test & Warranty certificate. Any other additional certificate shall be on a chargeable basis and upon acceptance from our end for the same."),
-            ("13. Validity", "The Validity of this offer is for a period of 30 days from the date of this offer and shall be extended subjected to mutual acceptance.")
-        ]
+        if custom_gc_text:
+            # Parse custom conditions
+            gc_sections = []
+            conditions = custom_gc_text.split('\n\n')
+            for condition in conditions:
+                if ':' in condition:
+                    parts = condition.split(':', 1)
+                    gc_sections.append((parts[0].strip(), parts[1].strip()))
+        else:
+            # Use default conditions
+            gc_sections = [
+                ("1. Offer and Conclusion of Contract", "Only our offers and written confirmations will be decisive with respect to the scope and type of products delivered. The contract shall be deemed to have been concluded when we have accepted the order in writing; up to that time our quotation is without obligation. Measures, weights, illustrations and drawings are without obligation for the models, unless expressly confirmed by us in writing. Manufacturing and detail drawings will be supplied by us only if agreed upon before conclusion of the contract and confirmed by us in writing. An appropriate extra charge will be levied for the supply of such drawings. Where special tools and gauges or clamping devices are necessary in order to carry out a special order, these will be invoiced additionally, but shall remain our property after completion of the order."),
+                ("2. Terms of Delivery", "Prices quoted in our offer are EX Works Chakan Basis. All prices are excluding freight and insurance."),
+                ("3. Terms of Payment", "The Terms of Payment as applicable is mentioned in our offer. If the terms of payment laid down in the contract are not complied with, interest will be charged at a rate of 8% above the discount rate. In case of complaints with respect to products received, the customer is requested not suspend payment or make any deductions from the invoiced amount, unless liability is admitted by us."),
+                ("4. Retention of Title/Conditional Sale", "The products shall remain our property until payment has been made in full."),
+                ("5. Delivery", "The Delivery time is mentioned in our offer. The delivery period shall run from the date on which all technical particulars of the models in questions have been clarified and agreement has been reached between the parties with respect to all details of the contract. In case of unforeseeable circumstances which are beyond our control, i.e., force majeure, operating trouble, delayed deliveries by a subcontractor, rejects in our own plant or at a subcontractor's the delivery period shall be reasonably extended. We shall use our best efforts to honour confirmed delivery dates, which are only approximate. However, if in case of confirmed delivery dates there occurs a delay, an appropriate extension of time shall be granted. Claims for damages or penalties are, therefore, excluded unless its discussed in detail during the placement of the order on us."),
+                ("6. Packing & Forwarding Charges", "Packing & Forwarding charge @2% shall be applicable on the Basic price of the contract. In case of NIL P & F, then we shall adopt our standard packing method for the dispatch."),
+                ("7. Taxes", "GST shall be applicable as per the slab of HSN Code."),
+                ("8. Liability for Defects", "Deficiency claims have to be brought forward immediately upon receipt of the shipment. We warrant the quality of our products in such a manner as to replace or repair all components returned to us because they do not meet the specifications or cannot be used because of defects in workmanship. We accept liability only for defects in design or execution which have been caused by us. For defects in material supplied by us we accept liability only insofar as we should have discovered the deficiency in exercising due diligence. If we are responsible for the technical design, we will accept a deficiency claim only in case the customer can prove that our product does not meet the state of art due to our fault. We are not liable for damages due to normal wear and tear or misuse of the products supplied. Any further claims, such as compensation for direct or indirect damages to machinery or cost incurred in dismantling an assembly work, freight charges or penalties for delay etc. are not covered. Where products have been repaired, altered or overhauled without our consent our liability ceases."),
+                ("9. Warranty", "Unless otherwise agreed, we warrant the quality of design and manufacture utilizing good raw material for a period of 12 months from the date of commissioning or 18 months from the date of shipment, whichever is earlier, in such a way that we replace or repair free of charge defective components which have been returned to us."),
+                ("10. Cancellation of Contract", "The customer may cancel the contract only if, upon a reasonable extension of time we have failed to remedy a deficiency or if, in such case, we are, for whatever reason, unable to undertake necessary corrections or to supply a replacement part. In the event that the contract should be cancelled by the customer without our fault, the customer shall reimburse to us, without delay, the invoice value of such contract after deduction of the direct costs saved by us as a result of the cancellation."),
+                ("11. Purchasing Conditions of Customer", "Purchasing conditions of the customer which are not in compliance with these General Conditions of Delivery and Payment, must be accepted by us in writing in order to be binding. The other provisions of these conditions remain in full force and effect."),
+                ("12. Test Certificates & Warranty Certificate", "We shall submit our standard Test & Warranty certificate. Any other additional certificate shall be on a chargeable basis and upon acceptance from our end for the same."),
+                ("13. Validity", "The Validity of this offer is for a period of 30 days from the date of this offer and shall be extended subjected to mutual acceptance.")
+            ]
         
         for title, content in gc_sections:
             story.append(Paragraph(f"<b>{title}</b>", small_bold))
@@ -340,4 +365,4 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
             'success': False,
             'message': str(e),
             'traceback': traceback.format_exc()
-        }   
+        }
