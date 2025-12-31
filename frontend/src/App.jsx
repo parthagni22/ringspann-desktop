@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import NewQuotation from './pages/NewQuotation';
 import CustomerRequirements from './pages/CustomerRequirements';
 import CommercialQuote from './pages/CommercialQuote';
+import TechnicalQuote from './pages/TechnicalQuote';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/quotation/new" element={<NewQuotation />} />
         <Route path="/quotation/requirements/:projectId" element={<CustomerRequirements />} />
         <Route path="/quotation/commercial/:projectId" element={<CommercialQuote />} />
+        <Route path="/quotation/technical/:projectId" element={<TechnicalQuote />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
