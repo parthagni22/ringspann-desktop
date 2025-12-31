@@ -241,6 +241,9 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
             """), {'quotation_number': quotation_number}).fetchone()
             if result and result[0]:
                 custom_terms_text = result[0]
+                print(f"DEBUG: Loaded custom terms from DB: {custom_terms_text[:100]}...")  # Debug
+            else:
+                print(f"DEBUG: No custom terms found for {quotation_number}")  # Debug
         except Exception as e:
             print(f"Error loading terms: {e}")
         finally:
@@ -252,6 +255,7 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
         
         if custom_terms_text:
             terms = [line for line in custom_terms_text.split('\n') if line.strip()]
+            print(f"DEBUG: Using {len(terms)} custom terms")  # Debug
         else:
             terms = [
                 "1) Terms of Payment - 100% against Proforma Invoice.",
@@ -265,6 +269,7 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
                 "6) Delivery Period: 8 weeks from date of technically and commercially clear PO.",
                 "7) Warrantee/ Guarantee: 12 months from the date of commissioning or 18 months from the date of Invoice, whichever is earlier."
             ]
+            print(f"DEBUG: Using default terms")  # Debug
         
         for term in terms:
             story.append(Paragraph(term, small_text))
@@ -335,4 +340,4 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
             'success': False,
             'message': str(e),
             'traceback': traceback.format_exc()
-        }
+        }   

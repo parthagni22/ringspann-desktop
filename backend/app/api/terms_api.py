@@ -91,12 +91,25 @@ def save_custom_terms(quotation_number, terms_text):
     """Save custom terms for a quotation"""
     db = SessionLocal()
     try:
-        # Update commercial_quotations table
-        db.execute(text("""
-            UPDATE commercial_quotations 
-            SET terms = :terms, updated_at = CURRENT_TIMESTAMP
+        # Check if commercial quote exists
+        result = db.execute(text("""
+            SELECT id FROM commercial_quotations
             WHERE quotation_number = :quotation_number
-        """), {'terms': terms_text, 'quotation_number': quotation_number})
+        """), {'quotation_number': quotation_number}).fetchone()
+        
+        if result:
+            # Update existing
+            db.execute(text("""
+                UPDATE commercial_quotations 
+                SET terms = :terms, updated_at = CURRENT_TIMESTAMP
+                WHERE quotation_number = :quotation_number
+            """), {'terms': terms_text, 'quotation_number': quotation_number})
+        else:
+            # Create new entry with just terms
+            db.execute(text("""
+                INSERT INTO commercial_quotations (quotation_number, terms, created_at, updated_at)
+                VALUES (:quotation_number, :terms, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            """), {'quotation_number': quotation_number, 'terms': terms_text})
         
         db.commit()
         return {'success': True, 'message': 'Terms saved successfully'}
