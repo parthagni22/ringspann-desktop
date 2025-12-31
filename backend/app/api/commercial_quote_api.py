@@ -108,3 +108,9 @@ def get_commercial_quote(quotation_number: str):
         return {"success": False, "message": str(e)}
     finally:
         db.close()
+
+@eel.expose
+def generate_commercial_pdf(quotation_number: str, form_data: dict):
+    """Generate PDF for commercial quotation"""
+    from app.api.pdf_generator import generate_commercial_pdf as _gen_pdf
+    return _gen_pdf(quotation_number, form_data)

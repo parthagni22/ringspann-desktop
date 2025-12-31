@@ -48,7 +48,10 @@ class ProjectService:
             'id': project.id,
             'name': f"{project.quotation_number}_{project.customer_name}",
             'quotationNo': project.quotation_number,
+            'quotation_number': project.quotation_number,
             'customer': project.customer_name,
+            'customer_name': project.customer_name,
+            'requirements_data': project.requirements_data,
             'lastModified': project.updated_at.strftime('%Y-%m-%d'),
             'status': project.status.value,
             'dateCreated': project.created_at.strftime('%Y-%m-%d')

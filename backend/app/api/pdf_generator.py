@@ -1,7 +1,6 @@
 """
 Commercial Quotation PDF Generator
 """
-import eel
 import json
 from datetime import datetime
 from reportlab.lib.pagesizes import letter, A4
@@ -16,7 +15,6 @@ import os
 from app.database.connection import SessionLocal
 from app.models.commercial_quotation import CommercialQuotation
 
-@eel.expose
 def generate_commercial_pdf(quotation_number: str, form_data: dict):
     """Generate PDF for commercial quotation"""
     try:
