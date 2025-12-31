@@ -124,6 +124,18 @@ const CustomerRequirements = () => {
       if (response.success) {
         setCustomerName(response.data.customer);
         setQuotationNumber(response.data.quotationNo);
+        
+        // Load existing requirements if available
+        if (response.data.requirements_data) {
+          const existingReqs = JSON.parse(response.data.requirements_data);
+          if (existingReqs && existingReqs.length > 0) {
+            setRequirements(existingReqs.map((req, idx) => ({
+              id: idx + 1,
+              partType: req.partType || req.part_type || '',
+              fieldValues: req.fieldValues || {}
+            })));
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to load project:', error);

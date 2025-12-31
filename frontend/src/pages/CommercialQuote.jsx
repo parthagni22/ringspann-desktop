@@ -39,43 +39,66 @@ const CommercialQuote = () => {
         // Get current user
         const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
         
-        const requirements = JSON.parse(proj.requirements_data || '[]');
-        console.log('Requirements loaded:', requirements); // Debug
+        // Try to load existing commercial quote
+        const quoteResult = await window.eel.get_commercial_quote(proj.quotation_number)();
         
-        const items = requirements.map((req, index) => ({
-          sr_no: index + 1,
-          part_type: req.partType || req.part_type || 'N/A',
-          description: `Customer: ${proj.customer_name} - Products: ${req.partType || req.part_type || 'N/A'}`,
-          unit_price: 0.0,
-          unit: 0,
-          total_price: 0.0
-        }));
-        
-        if (items.length === 0) {
-          items.push({
-            sr_no: 1,
-            part_type: '',
-            description: '',
+        if (quoteResult.success && quoteResult.data) {
+          // Load existing quote data
+          const quote = quoteResult.data;
+          setFormData({
+            to: quote.to || '',
+            attn: quote.attn || '',
+            email_to: quote.email_to || '',
+            your_inquiry_ref: quote.your_inquiry_ref || '',
+            pages: quote.pages || 1,
+            your_partner: quote.your_partner || 'RINGSPANN',
+            mobile_no: quote.mobile_no || '',
+            fax_no: quote.fax_no || '',
+            email_partner: quote.email_partner || currentUser.username || 'parth@ringspann.com',
+            inquiry_date: quote.inquiry_date || new Date().toISOString().split('T')[0],
+            quotation_date: quote.quotation_date || new Date().toISOString().split('T')[0],
+            items: quote.items || []
+          });
+        } else {
+          // New quote - load from requirements
+          const requirements = JSON.parse(proj.requirements_data || '[]');
+          console.log('Requirements loaded:', requirements);
+          
+          const items = requirements.map((req, index) => ({
+            sr_no: index + 1,
+            part_type: req.partType || req.part_type || 'N/A',
+            description: `Customer: ${proj.customer_name} - Products: ${req.partType || req.part_type || 'N/A'}`,
             unit_price: 0.0,
             unit: 0,
             total_price: 0.0
-          });
-          items.push({
-            sr_no: 2,
-            part_type: '',
-            description: '',
-            unit_price: 0.0,
-            unit: 0,
-            total_price: 0.0
-          });
+          }));
+          
+          if (items.length === 0) {
+            items.push({
+              sr_no: 1,
+              part_type: '',
+              description: '',
+              unit_price: 0.0,
+              unit: 0,
+              total_price: 0.0
+            });
+            items.push({
+              sr_no: 2,
+              part_type: '',
+              description: '',
+              unit_price: 0.0,
+              unit: 0,
+              total_price: 0.0
+            });
+          }
+          
+          setFormData(prev => ({
+            ...prev,
+            your_partner: 'RINGSPANN',
+            email_partner: currentUser.username || 'parth@ringspann.com',
+            items
+          }));
         }
-        
-        setFormData(prev => ({
-          ...prev,
-          your_partner: 'RINGSPANN',
-          email_partner: currentUser.username || 'parth@ringspann.com',
-          items
-        }));
       }
       
       setLoading(false);
@@ -157,6 +180,20 @@ const CommercialQuote = () => {
 
   const saveCommercialQuote = async () => {
     try {
+      // Check if quote already exists
+      const checkResult = await window.eel.get_commercial_quote(project.quotation_number)();
+      
+      let shouldSave = true;
+      if (checkResult.success && checkResult.data) {
+        // Quote exists - show confirmation
+        shouldSave = window.confirm(
+          'This quotation already exists. Updating will permanently change the previous data.\n\n' +
+          'Do you want to continue with the update?'
+        );
+      }
+      
+      if (!shouldSave) return;
+      
       // Save to database
       const saveResult = await window.eel.save_commercial_quote(
         parseInt(projectId),
@@ -169,7 +206,16 @@ const CommercialQuote = () => {
         return;
       }
       
-      // Generate PDF
+      alert('Commercial quote saved successfully!');
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to save commercial quote');
+    }
+  };
+
+  const generatePDF = async () => {
+    try {
       const pdfResult = await window.eel.generate_commercial_pdf(
         project.quotation_number,
         formData
@@ -178,11 +224,11 @@ const CommercialQuote = () => {
       if (pdfResult.success) {
         alert(`PDF generated successfully!\n\nFile: ${pdfResult.filename}\nLocation: ${pdfResult.filepath}`);
       } else {
-        alert('Quote saved but PDF generation failed: ' + pdfResult.message);
+        alert('PDF generation failed: ' + pdfResult.message);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to save commercial quote');
+      alert('Failed to generate PDF');
     }
   };
 
@@ -426,9 +472,10 @@ const CommercialQuote = () => {
 
           {/* Bottom Buttons */}
           <div style={styles.bottomButtons}>
+            <button style={styles.btn} onClick={saveCommercialQuote}>Save Changes</button>
             <button style={styles.btn}>Edit Terms & Conditions</button>
             <button style={styles.btn}>Edit General Conditions</button>
-            <button onClick={saveCommercialQuote} style={styles.btn}>Generate Commercial PDF</button>
+            <button onClick={generatePDF} style={styles.btn}>Generate Commercial PDF</button>
           </div>
 
           {/* Subtotal */}

@@ -53,8 +53,8 @@ const Dashboard = () => {
   };
 
   const handleProjectClick = (project) => {
-    // Navigate to quotation edit/view
-    navigate(`/quotation/${project.id}`);
+    // Navigate to customer requirements page with project ID
+    navigate(`/quotation/requirements/${project.id}`);
   };
 
   const confirmDelete = (project, e) => {

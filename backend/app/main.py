@@ -25,12 +25,20 @@ def start_app():
         
         eel.start(
             'index.html',
-            mode='chrome-app',
+            mode='chrome',
             host='localhost',
             port=8080,
             size=(1400, 900),
-            cmdline_args=['--app=http://localhost:8080'],
-            block=True
+            cmdline_args=[
+                '--disable-http-cache',
+                '--disable-dev-shm-usage',
+                '--no-first-run',
+                '--no-default-browser-check',
+                '--window-size=1400,900',
+                '--app=http://localhost:8080'
+            ],
+            block=True,
+            close_callback=lambda *args: None
         )
     except Exception as e:
         logger.error(f"Failed to start: {e}")
