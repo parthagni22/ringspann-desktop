@@ -253,6 +253,8 @@ const CommercialQuote = () => {
       const result = await window.eel.save_custom_terms(project.quotation_number, termsText)();
       if (result.success) {
         setCurrentTerms(termsText);
+        // Update formData to include saved terms
+        setFormData(prev => ({ ...prev, terms: termsText }));
         alert('Terms & Conditions saved successfully!');
       } else {
         alert('Failed to save: ' + result.message);

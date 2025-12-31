@@ -43,16 +43,57 @@ const EditTermsModal = ({ isOpen, onClose, onSave, currentTerms }) => {
   };
 
   const parseCurrentTerms = (termsText) => {
-    // Parse existing terms from text format
+    if (!termsText) return;
+    
     const lines = termsText.split('\n');
+    const parsed = {
+      payment: '',
+      priceBasis: '',
+      pfCharges: '',
+      insurance: '',
+      taxes: { igst: '', cgstSgst: '', ugst: '' },
+      deliveryPeriod: '',
+      warranty: ''
+    };
+    const customList = [];
+    
     lines.forEach(line => {
       if (line.includes('Terms of Payment')) {
-        setTerms(prev => ({ ...prev, payment: line.split(' - ')[1] || prev.payment }));
-      } else if (line.includes('Price basis')) {
-        setTerms(prev => ({ ...prev, priceBasis: line.split(': ')[1] || prev.priceBasis }));
+        parsed.payment = line.split(' - ')[1] || parsed.payment;
+      } else if (line.includes('Price basis:')) {
+        parsed.priceBasis = line.split(': ')[1] || parsed.priceBasis;
+      } else if (line.includes('P&F Charges:')) {
+        parsed.pfCharges = line.split(': ')[1] || parsed.pfCharges;
+      } else if (line.includes('Insurance:')) {
+        parsed.insurance = line.split(': ')[1] || parsed.insurance;
+      } else if (line.startsWith('a)')) {
+        parsed.taxes.igst = line.substring(3).trim();
+      } else if (line.startsWith('b)')) {
+        parsed.taxes.cgstSgst = line.substring(3).trim();
+      } else if (line.startsWith('c)')) {
+        parsed.taxes.ugst = line.substring(3).trim();
+      } else if (line.includes('Delivery Period:')) {
+        parsed.deliveryPeriod = line.split(': ')[1] || parsed.deliveryPeriod;
+      } else if (line.includes('Warranty') || line.includes('Guarantee')) {
+        parsed.warranty = line.split(': ')[1] || parsed.warranty;
+      } else if (line.match(/^\d+\)/)) {
+        // Custom term (8+)
+        const num = parseInt(line.match(/^\d+/)[0]);
+        if (num >= 8) {
+          const parts = line.substring(line.indexOf(')') + 1).split(':');
+          if (parts.length >= 2) {
+            customList.push({
+              id: Date.now() + num,
+              title: parts[0].trim(),
+              description: parts.slice(1).join(':').trim()
+            });
+          }
+        }
       }
-      // Parse other terms similarly
     });
+    
+    setTerms(prev => ({ ...prev, ...parsed }));
+    setCustomTerms(customList);
   };
 
   const handleAddCustomTerm = () => {

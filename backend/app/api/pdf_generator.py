@@ -241,6 +241,8 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
             """), {'quotation_number': quotation_number}).fetchone()
             if result and result[0]:
                 custom_terms_text = result[0]
+        except Exception as e:
+            print(f"Error loading terms: {e}")
         finally:
             db.close()
         
@@ -249,7 +251,7 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
         story.append(Spacer(1, 6))
         
         if custom_terms_text:
-            terms = custom_terms_text.split('\n')
+            terms = [line for line in custom_terms_text.split('\n') if line.strip()]
         else:
             terms = [
                 "1) Terms of Payment - 100% against Proforma Invoice.",
