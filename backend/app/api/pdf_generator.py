@@ -10,6 +10,8 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 from reportlab.pdfgen import canvas
 from pathlib import Path
+from app.database.connection import SessionLocal
+from sqlalchemy import text
 
 class FooteredCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -229,22 +231,38 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
         story.append(items_table)
         story.append(Spacer(1, 15))
         
+        # Load custom terms from database or use defaults
+        db = SessionLocal()
+        custom_terms_text = None
+        try:
+            result = db.execute(text("""
+                SELECT terms FROM commercial_quotations
+                WHERE quotation_number = :quotation_number
+            """), {'quotation_number': quotation_number}).fetchone()
+            if result and result[0]:
+                custom_terms_text = result[0]
+        finally:
+            db.close()
+        
         # Terms
         story.append(Paragraph("<b>Important Commercial Terms</b>", small_bold))
         story.append(Spacer(1, 6))
         
-        terms = [
-            "1) Terms of Payment - 100% against Proforma Invoice.",
-            "2) Price basis: Ex-Works Chakan, Pune Basis",
-            "3) P&F; Charges: 2% Extra on the Basic Price",
-            "4) Insurance: Shall be borne by you.",
-            "5) Taxes:",
-            "a) I-GST is applicable for Out of Maharashtra",
-            "b) C-GST & S-GST is applicable within the State of Maharashtra.",
-            "c) U-GST is applicable for Union Territory.",
-            "6) Delivery Period: 8 weeks from date of technically and commercially clear PO.",
-            "7) Warrantee/ Guarantee: 12 months from the date of commissioning or 18 months from the date of Invoice, whichever is earlier."
-        ]
+        if custom_terms_text:
+            terms = custom_terms_text.split('\n')
+        else:
+            terms = [
+                "1) Terms of Payment - 100% against Proforma Invoice.",
+                "2) Price basis: Ex-Works Chakan, Pune Basis",
+                "3) P&F; Charges: 2% Extra on the Basic Price",
+                "4) Insurance: Shall be borne by you.",
+                "5) Taxes:",
+                "a) I-GST is applicable for Out of Maharashtra",
+                "b) C-GST & S-GST is applicable within the State of Maharashtra.",
+                "c) U-GST is applicable for Union Territory.",
+                "6) Delivery Period: 8 weeks from date of technically and commercially clear PO.",
+                "7) Warrantee/ Guarantee: 12 months from the date of commissioning or 18 months from the date of Invoice, whichever is earlier."
+            ]
         
         for term in terms:
             story.append(Paragraph(term, small_text))

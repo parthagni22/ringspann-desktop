@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import EditTermsModal from '../components/EditTermsModal';
 
 const CommercialQuote = () => {
   const { projectId } = useParams();
@@ -8,6 +9,8 @@ const CommercialQuote = () => {
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState(null);
   const [selectedRows, setSelectedRows] = useState(new Set());
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+  const [currentTerms, setCurrentTerms] = useState('');
   
   const [formData, setFormData] = useState({
     to: '',
@@ -229,6 +232,34 @@ const CommercialQuote = () => {
     } catch (error) {
       console.error('Error:', error);
       alert('Failed to generate PDF');
+    }
+  };
+
+  const handleOpenTermsModal = async () => {
+    try {
+      const result = await window.eel.get_quote_terms(project.quotation_number)();
+      if (result.success && result.data) {
+        setCurrentTerms(result.data);
+      }
+      setIsTermsModalOpen(true);
+    } catch (error) {
+      console.error('Error loading terms:', error);
+      setIsTermsModalOpen(true);
+    }
+  };
+
+  const handleSaveTerms = async (termsText) => {
+    try {
+      const result = await window.eel.save_custom_terms(project.quotation_number, termsText)();
+      if (result.success) {
+        setCurrentTerms(termsText);
+        alert('Terms & Conditions saved successfully!');
+      } else {
+        alert('Failed to save: ' + result.message);
+      }
+    } catch (error) {
+      console.error('Error saving terms:', error);
+      alert('Failed to save terms');
     }
   };
 
@@ -473,7 +504,7 @@ const CommercialQuote = () => {
           {/* Bottom Buttons */}
           <div style={styles.bottomButtons}>
             <button style={styles.btn} onClick={saveCommercialQuote}>Save Changes</button>
-            <button style={styles.btn}>Edit Terms & Conditions</button>
+            <button style={styles.btn} onClick={handleOpenTermsModal}>Edit Terms & Conditions</button>
             <button style={styles.btn}>Edit General Conditions</button>
             <button onClick={generatePDF} style={styles.btn}>Generate Commercial PDF</button>
           </div>
@@ -484,6 +515,14 @@ const CommercialQuote = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Terms Modal */}
+      <EditTermsModal 
+        isOpen={isTermsModalOpen}
+        onClose={() => setIsTermsModalOpen(false)}
+        onSave={handleSaveTerms}
+        currentTerms={currentTerms}
+      />
     </div>
   );
 };
