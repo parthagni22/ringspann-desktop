@@ -50,13 +50,15 @@ def save_technical_quote(quotation_number, requirement_id, quote_data):
                 'data': json.dumps(quote_data)
             })
         else:
-            # Insert
+            # Insert - ADD part_type
             db.execute(text("""
-                INSERT INTO technical_quotations (quotation_number, requirement_id, technical_data, created_at, updated_at)
-                VALUES (:quotation_number, :requirement_id, :data, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                INSERT INTO technical_quotations 
+                (quotation_number, requirement_id, part_type, technical_data, created_at, updated_at)
+                VALUES (:quotation_number, :requirement_id, :part_type, :data, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             """), {
                 'quotation_number': quotation_number,
                 'requirement_id': requirement_id,
+                'part_type': requirement_id,
                 'data': json.dumps(quote_data)
             })
         
@@ -71,5 +73,35 @@ def save_technical_quote(quotation_number, requirement_id, quote_data):
 @eel.expose
 def generate_technical_pdf(quotation_number, metadata, requirements, technical_quotes):
     """Generate technical PDF"""
-    # TODO: Implement PDF generation
-    return {'success': True, 'filename': 'technical_quote.pdf', 'filepath': '/path/to/pdf'}
+    from pathlib import Path
+    from datetime import datetime
+    from app.api.technical_pdf_generator import generate_technical_pdf_dispatch
+    
+    try:
+        output_dir = Path("data/quotations/technical")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        filename = f"Technical_Quote_{quotation_number.replace('/', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        filepath = output_dir / filename
+        
+        # Generate actual PDF
+        success = generate_technical_pdf_dispatch(
+            quotation_number, metadata, requirements, technical_quotes, filepath
+        )
+        
+        if success:
+            return {
+                'success': True, 
+                'filename': filename,
+                'filepath': str(filepath.absolute())
+            }
+        else:
+            return {'success': False, 'message': 'No requirements to generate PDF'}
+            
+    except Exception as e:
+        import traceback
+        return {
+            'success': False, 
+            'message': str(e),
+            'traceback': traceback.format_exc()
+        }
