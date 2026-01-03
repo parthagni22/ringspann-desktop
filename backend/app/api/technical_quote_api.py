@@ -1,5 +1,5 @@
 """
-Technical Quote API
+Technical Quote API - UPDATED FOR MULTI-PDF GENERATION
 """
 import eel
 import json
@@ -70,9 +70,23 @@ def save_technical_quote(quotation_number, requirement_id, quote_data):
     finally:
         db.close()
 
+# ============================================================
+# UPDATED FUNCTION - HANDLES MULTIPLE PDFs
+# ============================================================
 @eel.expose
 def generate_technical_pdf(quotation_number, metadata, requirements, technical_quotes):
-    """Generate technical PDF"""
+    """
+    Generate technical PDFs - ONE PDF PER PART TYPE
+    
+    Returns:
+        {
+            'success': True,
+            'count': 3,  # Number of PDFs generated
+            'files': ['/full/path/to/Brake.pdf', '/full/path/to/Backstop.pdf', ...],
+            'filenames': ['Technical_Quote_Brake_123.pdf', 'Technical_Quote_Backstop_123.pdf', ...],
+            'message': 'Generated 3 technical PDF(s)'
+        }
+    """
     from pathlib import Path
     from datetime import datetime
     from app.api.technical_pdf_generator import generate_technical_pdf_dispatch
@@ -81,19 +95,27 @@ def generate_technical_pdf(quotation_number, metadata, requirements, technical_q
         output_dir = Path("data/quotations/technical")
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        filename = f"Technical_Quote_{quotation_number.replace('/', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-        filepath = output_dir / filename
-        
-        # Generate actual PDF
-        success = generate_technical_pdf_dispatch(
-            quotation_number, metadata, requirements, technical_quotes, filepath
+        # CHANGED: Pass output_dir instead of filepath
+        # CHANGED: Returns list of files instead of boolean
+        generated_files = generate_technical_pdf_dispatch(
+            quotation_number, 
+            metadata, 
+            requirements, 
+            technical_quotes, 
+            output_dir  # Directory, not filepath
         )
         
-        if success:
+        # CHANGED: Check for list of files
+        if generated_files and len(generated_files) > 0:
+            # Extract just filenames for display
+            filenames = [Path(f).name for f in generated_files]
+            
             return {
-                'success': True, 
-                'filename': filename,
-                'filepath': str(filepath.absolute())
+                'success': True,
+                'count': len(generated_files),      # NEW: Number of PDFs
+                'files': generated_files,            # NEW: Full paths
+                'filenames': filenames,              # NEW: Just names
+                'message': f'Generated {len(generated_files)} technical PDF(s)'
             }
         else:
             return {'success': False, 'message': 'No requirements to generate PDF'}
