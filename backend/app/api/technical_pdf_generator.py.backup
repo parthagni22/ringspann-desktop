@@ -599,33 +599,36 @@ def generate_clutch_technical_pdf(quotation_number, metadata, requirements, tech
             Paragraph(str(idx + 1), cell_style),
             Paragraph(get_field_value(cust_reqs, 'Tag number', 'tagNumber', 'tag_number'), cell_style),
             Paragraph(get_field_value(cust_reqs, 'Application', 'application'), cell_style),
-            # Shaft diameter
-            Paragraph(get_field_value(cust_reqs, 'Shaft diameter Main drive - Drive (mm)'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Shaft diameter Main drive - Driven (mm)'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Shaft diameter Auxiliary drive - Drive (mm)'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Shaft diameter Auxiliary drive - Driven (mm)'), cell_style),
-            # Torque
-            Paragraph(get_field_value(cust_reqs, 'Torque Main drive - Min (Nm)'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Torque Main drive - Max (Nm)'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Torque Auxiliary drive - Min (Nm)'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Torque Auxiliary drive - Max (Nm)'), cell_style),
-            # Speed
-            Paragraph(get_field_value(cust_reqs, 'Speed Main drive - Min (RPM)'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Speed Main drive - Rated (RPM)'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Speed Main drive - Max (RPM)'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Speed Auxiliary drive - Min (RPM)'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Speed Auxiliary drive - Rated (RPM)'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Speed Auxiliary drive - Max (RPM)'), cell_style),
-            # Operating & Direction
-            Paragraph(get_field_value(cust_reqs, 'Operating hours - daily'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Direction of rotation from drive side - Main drive'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Direction of rotation from drive side - Auxiliary drive'), cell_style),
+            # Shaft diameter - Main drive
+            Paragraph(get_field_value(cust_reqs, 'Shaft diameter Main drive Drive', 'shaftDiameterMainDrive', 'shaft_diameter_main_drive'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Shaft diameter Main drive Driven', 'shaftDiameterMainDriven', 'shaft_diameter_main_driven'), cell_style),
+            # Shaft diameter - Auxiliary drive
+            Paragraph(get_field_value(cust_reqs, 'Shaft diameter Auxiliary drive Drive', 'shaftDiameterAuxDrive', 'shaft_diameter_aux_drive'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Shaft diameter Auxiliary drive Driven', 'shaftDiameterAuxDriven', 'shaft_diameter_aux_driven'), cell_style),
+            # Torque - Main drive
+            Paragraph(get_field_value(cust_reqs, 'Torque Main drive Min', 'torqueMainMin', 'torque_main_min'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Torque Main drive Max', 'torqueMainMax', 'torque_main_max'), cell_style),
+            # Torque - Auxiliary drive
+            Paragraph(get_field_value(cust_reqs, 'Torque Auxiliary drive Min', 'torqueAuxMin', 'torque_aux_min'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Torque Auxiliary drive Max', 'torqueAuxMax', 'torque_aux_max'), cell_style),
+            # Speed - Main drive
+            Paragraph(get_field_value(cust_reqs, 'Speed Main drive Min', 'speedMainMin', 'speed_main_min'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Speed Main drive Rated', 'speedMainRated', 'speed_main_rated'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Speed Main drive Max', 'speedMainMax', 'speed_main_max'), cell_style),
+            # Speed - Auxiliary drive
+            Paragraph(get_field_value(cust_reqs, 'Speed Auxiliary drive Min', 'speedAuxMin', 'speed_aux_min'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Speed Auxiliary drive Rated', 'speedAuxRated', 'speed_aux_rated'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Speed Auxiliary drive Max', 'speedAuxMax', 'speed_aux_max'), cell_style),
+            # Operating hours
+            Paragraph(get_field_value(cust_reqs, 'Operating hours', 'operatingHours', 'operating_hours'), cell_style),
+            # Direction of rotation
+            Paragraph(get_field_value(cust_reqs, 'Direction Main drive', 'directionMain', 'direction_main'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Direction Auxiliary drive', 'directionAux', 'direction_aux'), cell_style),
             # RINGSPANN Product
-
             Paragraph(get_field_value(tech_fields, 'Product code', 'productCode', 'product_code'), cell_style),
             Paragraph(get_field_value(tech_fields, 'Size', 'size'), cell_style),
             Paragraph(get_field_value(tech_fields, 'Technical points', 'technicalPoints', 'technical_points'), cell_style),
-        ]          
+        ]
         table_data.append(row)
     
     # Fill empty rows to minimum
