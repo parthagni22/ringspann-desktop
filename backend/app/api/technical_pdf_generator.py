@@ -860,7 +860,7 @@ def generate_coupling_technical_pdf(quotation_number, metadata, requirements, te
 
 
 def generate_locking_element_technical_pdf(quotation_number, metadata, requirements, technical_quotes, filepath):
-    """Generate Locking Element for Conveyor Technical Quotation PDF - CORRECTED STRUCTURE"""
+    """Generate Locking Element for Conveyor Technical Quotation PDF - 3-ROW HEADER LIKE BACKSTOP"""
     
     print(f"\n{'='*60}")
     print(f"GENERATING LOCKING ELEMENT FOR CONVEYOR TECHNICAL PDF")
@@ -878,102 +878,88 @@ def generate_locking_element_technical_pdf(quotation_number, metadata, requireme
     cell_style = ParagraphStyle('CellStyle', fontSize=4, alignment=TA_CENTER, leading=4.5)
     header_style = ParagraphStyle('HeaderStyle', fontSize=4, alignment=TA_CENTER, leading=4.5, fontName='Helvetica-Bold')
     
-    # LOCKING ELEMENT - CORRECTED STRUCTURE (35 columns)
+    # LOCKING ELEMENT - 3-ROW HEADER (like Backstop) - 31 COLUMNS TOTAL
     
     # Row 1: Main section headers
     section_row = [
-        '',  # SL No
-        '',  # Pulley type
-        '',  # Tag number
-        '',  # Application
-        '',  # Pulley Qty
-        Paragraph('<b>Customer Datasheet</b>', header_style),  # Spans many columns
-        '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
-        Paragraph('<b>RINGSPANN Product</b>', header_style),  # Spans last columns
-        '', '', '', '', '', '', '', ''
+        '',  # 0: SL No
+        Paragraph('<b>Customer Datasheet</b>', header_style),  # 1-19: spans 19 columns
+        '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+        Paragraph('<b>RINGSPANN Product</b>', header_style),  # 20-30: spans 11 columns
+        '', '', '', '', '', '', '', '', '', ''
     ]
     
-    # Row 2: Sub-section headers
-    subsection_row = [
-        '',  # SL No
-        '',  # Pulley type
-        '',  # Tag number
-        '',  # Application
-        '',  # Pulley Qty
-        '',  # Hub material
-        '',  # Shaft diameter
-        '',  # Outer diameter
-        Paragraph('<b>Running condition</b>', header_style),  # Spans 4
-        '', '', '',
-        Paragraph('<b>Starting condition</b>', header_style),  # Spans 4
-        '', '', '',
-        '',  # Arm length
-        '',  # Wrap angle
-        '',  # start-up factor Running
-        '',  # start-up factor starting
-        Paragraph('<b>Running condition</b>', header_style),  # Spans 2
+    # Row 2: Column headers with sub-sections
+    header_row = [
+        Paragraph('<b>SL No.</b>', header_style),  # 0
+        Paragraph('<b>Pulley<br/>type</b>', header_style),  # 1
+        Paragraph('<b>Tag<br/>number</b>', header_style),  # 2
+        Paragraph('<b>Application</b>', header_style),  # 3
+        Paragraph('<b>Pulley<br/>Qty</b>', header_style),  # 4
+        Paragraph('<b>Hub<br/>material<br/>Yield<br/>strength<br/>(Re)<br/>N/mm2</b>', header_style),  # 5
+        Paragraph('<b>Shaft<br/>diameter<br/>(d)<br/>mm</b>', header_style),  # 6
+        Paragraph('<b>Outer<br/>diameter<br/>pulley<br/>(D2)<br/>mm</b>', header_style),  # 7
+        Paragraph('<b>Running condition</b>', header_style),  # 8-9: spans 2
         '',
-        Paragraph('<b>Starting condition</b>', header_style),  # Spans 2
+        Paragraph('<b>Starting condition</b>', header_style),  # 10-11: spans 2
         '',
-        '',  # Locking element Qty
-        '',  # Product code
-        '',  # Size
-        '',  # Hub inner
-        '',  # Hub outer
-        '',  # Hub length
-        '',  # Torque
-        '',  # Bending moment
-        '',  # Screw Tightening
-        '',  # Shaft pressure
-        '',  # Technical points
+        Paragraph('<b>Arm<br/>length<br/>(L)<br/>mm</b>', header_style),  # 12
+        Paragraph('<b>Wrap<br/>angle<br/>(θ)<br/>deg</b>', header_style),  # 13
+        Paragraph('<b>start-up<br/>factor<br/>Running<br/>condition</b>', header_style),  # 14
+        Paragraph('<b>start-up<br/>factor<br/>starting<br/>condition</b>', header_style),  # 15
+        Paragraph('<b>Running condition</b>', header_style),  # 16-17: spans 2 (torque)
+        '',
+        Paragraph('<b>Starting condition</b>', header_style),  # 18-19: spans 2 (torque)
+        '',
+        Paragraph('<b>Locking<br/>element<br/>Qty</b>', header_style),  # 20
+        Paragraph('<b>Product<br/>code</b>', header_style),  # 21
+        Paragraph('<b>Size</b>', header_style),  # 22
+        Paragraph('<b>Hub<br/>inner<br/>diameter<br/>(D)<br/>mm</b>', header_style),  # 23
+        Paragraph('<b>Hub<br/>outer<br/>diameter<br/>(Knm)<br/>mm</b>', header_style),  # 24
+        Paragraph('<b>Hub<br/>length<br/>(Knm)<br/>mm</b>', header_style),  # 25
+        Paragraph('<b>Torque<br/>(Mnet)<br/>Nm</b>', header_style),  # 26
+        Paragraph('<b>Bending<br/>moment<br/>(Ms)<br/>Nm</b>', header_style),  # 27
+        Paragraph('<b>Screw<br/>Tightening<br/>torque<br/>(Ms)<br/>Nm</b>', header_style),  # 28
+        Paragraph('<b>Shaft<br/>pressure<br/>(Pw)<br/>N/mm2</b>', header_style),  # 29
+        Paragraph('<b>Technical<br/>points</b>', header_style),  # 30
     ]
     
-    # Row 3: Detailed column headers
-    detail_row = [
-        Paragraph('<b>SL<br/>No.</b>', header_style),
-        Paragraph('<b>Pulley<br/>type</b>', header_style),
-        Paragraph('<b>Tag<br/>number</b>', header_style),
-        Paragraph('<b>Application</b>', header_style),
-        Paragraph('<b>Pulley<br/>Qty</b>', header_style),
-        Paragraph('<b>Hub<br/>material<br/>Yield<br/>strength<br/>(Re)<br/>N/mm2</b>', header_style),
-        Paragraph('<b>Shaft<br/>diameter<br/>(d)<br/>mm</b>', header_style),
-        Paragraph('<b>Outer<br/>diameter<br/>pulley<br/>(D2)<br/>mm</b>', header_style),
-        # Running condition
-        Paragraph('<b>Tension<br/>tight side<br/>(T1)<br/>kN</b>', header_style),
-        Paragraph('<b>Tension<br/>slack side<br/>(T2)<br/>kN</b>', header_style),
-        Paragraph('<b>Tension<br/>tight side<br/>belt<br/>(T1)<br/>kN</b>', header_style),
-        Paragraph('<b>Tension<br/>slack side<br/>belt<br/>(T2)<br/>kN</b>', header_style),
-        # Starting condition
-        Paragraph('<b>Tension<br/>tight side<br/>(T1)<br/>kN</b>', header_style),
-        Paragraph('<b>Tension<br/>slack side<br/>(T2)<br/>kN</b>', header_style),
-        Paragraph('<b>Tension<br/>tight side<br/>belt<br/>(T1)<br/>kN</b>', header_style),
-        Paragraph('<b>Tension<br/>slack side<br/>belt<br/>(T2)<br/>kN</b>', header_style),
-        # Additional parameters
-        Paragraph('<b>Arm<br/>length<br/>(L)<br/>mm</b>', header_style),
-        Paragraph('<b>Wrap<br/>angle<br/>(θ)<br/>deg</b>', header_style),
-        Paragraph('<b>start-up<br/>factor<br/>Running<br/>condition</b>', header_style),
-        Paragraph('<b>start-up<br/>factor<br/>starting<br/>condition</b>', header_style),
-        # Running condition torques
-        Paragraph('<b>Torque<br/>(M)<br/>Nm</b>', header_style),
-        Paragraph('<b>Bending<br/>moment<br/>(Ms)<br/>Nm</b>', header_style),
-        # Starting condition torques
-        Paragraph('<b>Torque<br/>(M)<br/>Nm</b>', header_style),
-        Paragraph('<b>Bending<br/>moment<br/>(Ms)<br/>Nm</b>', header_style),
-        # RINGSPANN Product
-        Paragraph('<b>Locking<br/>element<br/>Qty</b>', header_style),
-        Paragraph('<b>Product<br/>code</b>', header_style),
-        Paragraph('<b>Size</b>', header_style),
-        Paragraph('<b>Hub<br/>inner<br/>diameter<br/>(D)<br/>mm</b>', header_style),
-        Paragraph('<b>Hub<br/>outer<br/>diameter<br/>(Knm)<br/>mm</b>', header_style),
-        Paragraph('<b>Hub<br/>length<br/>(Knm)<br/>mm</b>', header_style),
-        Paragraph('<b>Torque<br/>(Mnet)<br/>Nm</b>', header_style),
-        Paragraph('<b>Bending<br/>moment<br/>(Ms)<br/>Nm</b>', header_style),
-        Paragraph('<b>Screw<br/>Tightening<br/>torque<br/>(Ms)<br/>Nm</b>', header_style),
-        Paragraph('<b>Shaft<br/>pressure<br/>(Pw)<br/>N/mm2</b>', header_style),
-        Paragraph('<b>Technical<br/>points</b>', header_style),
+    # Row 3: Sub-headers (units/details)
+    subheader_row = [
+        '',  # 0: SL No
+        '',  # 1: Pulley type
+        '',  # 2: Tag number
+        '',  # 3: Application
+        '',  # 4: Pulley Qty
+        '',  # 5: Hub material
+        '',  # 6: Shaft diameter
+        '',  # 7: Outer diameter pulley
+        Paragraph('<b>Tension<br/>tight side<br/>(T1)<br/>kN</b>', header_style),  # 8
+        Paragraph('<b>Tension<br/>slack side<br/>(T2)<br/>kN</b>', header_style),  # 9
+        Paragraph('<b>Tension<br/>tight side<br/>(T1)<br/>kN</b>', header_style),  # 10
+        Paragraph('<b>Tension<br/>slack side<br/>(T2)<br/>kN</b>', header_style),  # 11
+        '',  # 12: Arm length
+        '',  # 13: Wrap angle
+        '',  # 14: start-up factor Running
+        '',  # 15: start-up factor starting
+        Paragraph('<b>Torque<br/>(M)<br/>Nm</b>', header_style),  # 16
+        Paragraph('<b>Bending<br/>moment<br/>(Ms)<br/>Nm</b>', header_style),  # 17
+        Paragraph('<b>Torque<br/>(M)<br/>Nm</b>', header_style),  # 18
+        Paragraph('<b>Bending<br/>moment<br/>(Ms)<br/>Nm</b>', header_style),  # 19
+        '',  # 20: Locking element Qty
+        '',  # 21: Product code
+        '',  # 22: Size
+        '',  # 23: Hub inner diameter
+        '',  # 24: Hub outer diameter
+        '',  # 25: Hub length
+        '',  # 26: Torque
+        '',  # 27: Bending moment
+        '',  # 28: Screw Tightening torque
+        '',  # 29: Shaft pressure
+        '',  # 30: Technical points
     ]
     
-    table_data = [section_row, subsection_row, detail_row]
+    table_data = [section_row, header_row, subheader_row]
     
     # Add data rows for LOCKING ELEMENT requirements
     for idx, req in enumerate(requirements):
@@ -984,92 +970,84 @@ def generate_locking_element_technical_pdf(quotation_number, metadata, requireme
         tech_fields = tech_quote.get('technical_fields', tech_quote.get('technicalFields', tech_quote))
         
         row = [
-            Paragraph(str(idx + 1), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Pulley type', 'pulleyType', 'pulley_type'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Tag number', 'tagNumber', 'tag_number'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Application', 'application'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Pulley Qty', 'pulleyQty', 'pulley_qty'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Hub material Yield strength (Re) N/mm2', 'Hub material Yield strength', 'hubMaterialYieldStrength'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Shaft diameter (d) mm', 'Shaft diameter', 'shaftDiameter'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Outer diameter of pulley (D2) mm', 'Outer diameter pulley', 'outerDiameterPulley'), cell_style),
-            # Running condition (4)
-            Paragraph(get_field_value(cust_reqs, 'Tension tight side Running condition (T1) KN', 'Running Tension tight side T1'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Tension slack side Running condition (T2) KN', 'Running Tension slack side T2'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Tension tight side belt Running condition (T1) KN', 'Running Tension tight side belt'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Tension slack side belt Running condition (T2) KN', 'Running Tension slack side belt'), cell_style),
-            # Starting condition (4)
-            Paragraph(get_field_value(cust_reqs, 'Tension tight side Starting condition (T1) KN', 'Starting Tension tight side T1'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Tension slack side Starting condition (T2) KN', 'Starting Tension slack side T2'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Tension tight side belt Starting condition (T1) KN', 'Starting Tension tight side belt'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Tension slack side belt Starting condition (T2) KN', 'Starting Tension slack side belt'), cell_style),
-            # Arm, wrap, factors
-            Paragraph(get_field_value(cust_reqs, 'Arm length (L) mm', 'Arm length', 'armLength'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Wrap angel (β) deg', 'Wrap angle', 'wrapAngle'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'start-up factor Running condition', 'Start-up factor Running', 'startUpFactorRunning'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'start-up factor starting condition', 'Start-up factor Starting', 'startUpFactorStarting'), cell_style),
+            Paragraph(str(idx + 1), cell_style),  # 0
+            Paragraph(get_field_value(cust_reqs, 'Pulley type', 'pulleyType', 'pulley_type'), cell_style),  # 1
+            Paragraph(get_field_value(cust_reqs, 'Tag number', 'tagNumber', 'tag_number'), cell_style),  # 2
+            Paragraph(get_field_value(cust_reqs, 'Application', 'application'), cell_style),  # 3
+            Paragraph(get_field_value(cust_reqs, 'Pulley Qty', 'pulleyQty', 'pulley_qty'), cell_style),  # 4
+            Paragraph(get_field_value(cust_reqs, 'Hub material Yield strength (Re) N/mm2', 'Hub material Yield strength'), cell_style),  # 5
+            Paragraph(get_field_value(cust_reqs, 'Shaft diameter (d) mm', 'Shaft diameter'), cell_style),  # 6
+            Paragraph(get_field_value(cust_reqs, 'Outer diameter of pulley (D2) mm', 'Outer diameter pulley'), cell_style),  # 7
+            # Running condition (2)
+            Paragraph(get_field_value(cust_reqs, 'Tension tight side Running condition (T1) KN'), cell_style),  # 8
+            Paragraph(get_field_value(cust_reqs, 'Tension slack side Running condition (T2) KN'), cell_style),  # 9
+            # Starting condition (2)
+            Paragraph(get_field_value(cust_reqs, 'Tension tight side Starting condition (T1) KN'), cell_style),  # 10
+            Paragraph(get_field_value(cust_reqs, 'Tension slack side Starting condition (T2) KN'), cell_style),  # 11
+            # Parameters
+            Paragraph(get_field_value(cust_reqs, 'Arm length (L) mm', 'Arm length'), cell_style),  # 12
+            Paragraph(get_field_value(cust_reqs, 'Wrap angel (β) deg', 'Wrap angle'), cell_style),  # 13
+            Paragraph(get_field_value(cust_reqs, 'start-up factor Running condition'), cell_style),  # 14
+            Paragraph(get_field_value(cust_reqs, 'start-up factor starting condition'), cell_style),  # 15
             # Running condition torques (2)
-            Paragraph(get_field_value(cust_reqs, 'Torque Running condition (M) Nm', 'Running Torque', 'runningTorque'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Bending moment Running condition (Mb) Nm', 'Running Bending moment', 'runningBendingMoment'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Torque Running condition (M) Nm'), cell_style),  # 16
+            Paragraph(get_field_value(cust_reqs, 'Bending moment Running condition (Mb) Nm'), cell_style),  # 17
             # Starting condition torques (2)
-            Paragraph(get_field_value(cust_reqs, 'Torque Starting condition (M) Nm', 'Starting Torque', 'startingTorque'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Bending moment Starting condition (Mb) Nm', 'Starting Bending moment', 'startingBendingMoment'), cell_style),
-            # RINGSPANN Product (11)
-            Paragraph(get_field_value(tech_fields, 'Locking element Qty', 'lockingElementQty', 'locking_element_qty'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Product code', 'productCode', 'product_code'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Size', 'size'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Hub inner diameter', 'hubInnerDiameter', 'hub_inner_diameter'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Hub outer diameter', 'hubOuterDiameter', 'hub_outer_diameter'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Hub length', 'hubLength', 'hub_length'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Torque Mnet', 'torqueMnet', 'torque_mnet'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Bending moment Ms', 'bendingMomentMs', 'bending_moment_ms'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Screw Tightening torque', 'screwTighteningTorque', 'screw_tightening_torque'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Shaft pressure', 'shaftPressure', 'shaft_pressure'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Technical points', 'technicalPoints', 'technical_points'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Torque Starting condition (M) Nm'), cell_style),  # 18
+            Paragraph(get_field_value(cust_reqs, 'Bending moment Starting condition (Mb) Nm'), cell_style),  # 19
+            # RINGSPANN Product (11 columns: 20-30)
+            Paragraph(get_field_value(tech_fields, 'Locking element Qty', 'lockingElementQty'), cell_style),  # 20
+            Paragraph(get_field_value(tech_fields, 'Product code', 'productCode'), cell_style),  # 21
+            Paragraph(get_field_value(tech_fields, 'Size', 'size'), cell_style),  # 22
+            Paragraph(get_field_value(tech_fields, 'Hub inner diameter (Di) mm', 'Hub inner diameter', 'hubInnerDiameter'), cell_style),  # 23
+            Paragraph(get_field_value(tech_fields, 'Hub outer diameter (Knin) mm', 'Hub outer diameter', 'hubOuterDiameter'), cell_style),  # 24
+            Paragraph(get_field_value(tech_fields, 'Hub length (Knin) mm', 'Hub length', 'hubLength'), cell_style),  # 25
+            Paragraph(get_field_value(tech_fields, 'Torque (Macl) Nm', 'Torque Mnet', 'torqueMnet'), cell_style),  # 26
+            Paragraph(get_field_value(tech_fields, 'Bending moment (Mb) Nm', 'Bending moment Ms', 'bendingMomentMs'), cell_style),  # 27
+            Paragraph(get_field_value(tech_fields, 'Screw Tightening torque (Ms) Nm', 'Screw Tightening torque', 'screwTighteningTorque'), cell_style),  # 28
+            Paragraph(get_field_value(tech_fields, 'Shaft pressure (Pw) N/mm2', 'Shaft pressure', 'shaftPressure'), cell_style),  # 29
+            Paragraph(get_field_value(tech_fields, 'Technical points', 'technicalPoints'), cell_style),  # 30
         ]
         table_data.append(row)
     
     # Fill empty rows to minimum
     while len(table_data) < 7:  # 3 header rows + 4 data rows
-        empty_row = [Paragraph(str(len(table_data) - 2), cell_style)] + [Paragraph('-', cell_style) for _ in range(34)]
+        empty_row = [Paragraph(str(len(table_data) - 2), cell_style)] + [Paragraph('-', cell_style) for _ in range(30)]
         table_data.append(empty_row)
     
-    # Column widths for locking element template (35 columns total)
+    # Column widths for locking element template (31 columns total)
     col_widths = [
-        6*mm,   # SL No
-        7*mm,   # Pulley type
-        8*mm,   # Tag number
-        9*mm,   # Application
-        6*mm,   # Pulley Qty
-        8*mm,   # Hub material
-        7*mm,   # Shaft diameter
-        7*mm,   # Outer diameter pulley
-        6.5*mm, # Running T1
-        6.5*mm, # Running T2
-        6.5*mm, # Running belt tight
-        6.5*mm, # Running belt slack
-        6.5*mm, # Starting T1
-        6.5*mm, # Starting T2
-        6.5*mm, # Starting belt tight
-        6.5*mm, # Starting belt slack
-        7*mm,   # Arm length
-        7*mm,   # Wrap angle
-        7*mm,   # Factor running
-        7*mm,   # Factor starting
-        6.5*mm, # Running Torque
-        6.5*mm, # Running Bending
-        6.5*mm, # Starting Torque
-        6.5*mm, # Starting Bending
-        7*mm,   # Locking element Qty
-        10*mm,  # Product code
-        7*mm,   # Size
-        7*mm,   # Hub inner
-        7*mm,   # Hub outer
-        7*mm,   # Hub length
-        6.5*mm, # Torque Mnet
-        6.5*mm, # Bending Ms
-        7*mm,   # Screw torque
-        7*mm,   # Shaft pressure
-        9*mm,   # Technical points
+        6*mm,   # 0: SL No
+        7*mm,   # 1: Pulley type
+        8*mm,   # 2: Tag number
+        9*mm,   # 3: Application
+        7*mm,   # 4: Pulley Qty
+        9*mm,   # 5: Hub material
+        8*mm,   # 6: Shaft diameter
+        8*mm,   # 7: Outer diameter pulley
+        8*mm,   # 8: Running T1
+        8*mm,   # 9: Running T2
+        8*mm,   # 10: Starting T1
+        8*mm,   # 11: Starting T2
+        8*mm,   # 12: Arm length
+        8*mm,   # 13: Wrap angle
+        8*mm,   # 14: Factor running
+        8*mm,   # 15: Factor starting
+        8*mm,   # 16: Running Torque
+        8*mm,   # 17: Running Bending
+        8*mm,   # 18: Starting Torque
+        8*mm,   # 19: Starting Bending
+        7*mm,   # 20: Locking element Qty
+        11*mm,  # 21: Product code
+        7*mm,   # 22: Size
+        8*mm,   # 23: Hub inner
+        8*mm,   # 24: Hub outer
+        8*mm,   # 25: Hub length
+        8*mm,   # 26: Torque Mnet
+        8*mm,   # 27: Bending Ms
+        8*mm,   # 28: Screw torque
+        8*mm,   # 29: Shaft pressure
+        10*mm,  # 30: Technical points
     ]
     
     main_table = Table(table_data, colWidths=col_widths, repeatRows=3)
@@ -1077,553 +1055,41 @@ def generate_locking_element_technical_pdf(quotation_number, metadata, requireme
         ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
         
         # ROW 0: Main section headers
-        ('SPAN', (0, 0), (4, 2)),    # SL No, Pulley type, Tag, App, Pulley Qty span all 3 header rows
-        ('SPAN', (5, 0), (23, 0)),   # "Customer Datasheet" spans columns 5-23
-        ('SPAN', (24, 0), (34, 0)),  # "RINGSPANN Product" spans columns 24-34
+        ('SPAN', (0, 0), (0, 2)),    # SL No spans all 3 header rows
+        ('SPAN', (1, 0), (19, 0)),   # "Customer Datasheet" spans columns 1-19 (19 cols)
+        ('SPAN', (20, 0), (30, 0)),  # "RINGSPANN Product" spans columns 20-30 (11 cols)
         
-        # ROW 1: Sub-section headers
+        # ROW 1: Column headers with sub-sections
+        ('SPAN', (1, 1), (1, 2)),    # Pulley type
+        ('SPAN', (2, 1), (2, 2)),    # Tag number
+        ('SPAN', (3, 1), (3, 2)),    # Application
+        ('SPAN', (4, 1), (4, 2)),    # Pulley Qty
         ('SPAN', (5, 1), (5, 2)),    # Hub material
         ('SPAN', (6, 1), (6, 2)),    # Shaft diameter
         ('SPAN', (7, 1), (7, 2)),    # Outer diameter pulley
-        ('SPAN', (8, 1), (11, 1)),   # Running condition spans 4
-        ('SPAN', (12, 1), (15, 1)),  # Starting condition spans 4
-        ('SPAN', (16, 1), (16, 2)),  # Arm length
-        ('SPAN', (17, 1), (17, 2)),  # Wrap angle
-        ('SPAN', (18, 1), (18, 2)),  # start-up factor Running
-        ('SPAN', (19, 1), (19, 2)),  # start-up factor starting
-        ('SPAN', (20, 1), (21, 1)),  # Running condition (torque) spans 2
-        ('SPAN', (22, 1), (23, 1)),  # Starting condition (torque) spans 2
-        ('SPAN', (24, 1), (24, 2)),  # Locking element Qty
-        ('SPAN', (25, 1), (25, 2)),  # Product code
-        ('SPAN', (26, 1), (26, 2)),  # Size
-        ('SPAN', (27, 1), (27, 2)),  # Hub inner diameter
-        ('SPAN', (28, 1), (28, 2)),  # Hub outer diameter
-        ('SPAN', (29, 1), (29, 2)),  # Hub length
-        ('SPAN', (30, 1), (30, 2)),  # Torque
-        ('SPAN', (31, 1), (31, 2)),  # Bending moment
-        ('SPAN', (32, 1), (32, 2)),  # Screw Tightening torque
-        ('SPAN', (33, 1), (33, 2)),  # Shaft pressure
-        ('SPAN', (34, 1), (34, 2)),  # Technical points
+        ('SPAN', (8, 1), (9, 1)),    # Running condition spans 2
+        ('SPAN', (10, 1), (11, 1)),  # Starting condition spans 2
+        ('SPAN', (12, 1), (12, 2)),  # Arm length
+        ('SPAN', (13, 1), (13, 2)),  # Wrap angle
+        ('SPAN', (14, 1), (14, 2)),  # start-up factor Running
+        ('SPAN', (15, 1), (15, 2)),  # start-up factor starting
+        ('SPAN', (16, 1), (17, 1)),  # Running condition (torque) spans 2
+        ('SPAN', (18, 1), (19, 1)),  # Starting condition (torque) spans 2
+        ('SPAN', (20, 1), (20, 2)),  # Locking element Qty
+        ('SPAN', (21, 1), (21, 2)),  # Product code
+        ('SPAN', (22, 1), (22, 2)),  # Size
+        ('SPAN', (23, 1), (23, 2)),  # Hub inner diameter
+        ('SPAN', (24, 1), (24, 2)),  # Hub outer diameter
+        ('SPAN', (25, 1), (25, 2)),  # Hub length
+        ('SPAN', (26, 1), (26, 2)),  # Torque
+        ('SPAN', (27, 1), (27, 2)),  # Bending moment
+        ('SPAN', (28, 1), (28, 2)),  # Screw Tightening torque
+        ('SPAN', (29, 1), (29, 2)),  # Shaft pressure
+        ('SPAN', (30, 1), (30, 2)),  # Technical points
         
         # Font and styling
         ('FONTSIZE', (0, 0), (-1, -1), 4),
         ('FONTNAME', (0, 0), (-1, 2), 'Helvetica-Bold'),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 1),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0.5),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0.5),
-    ]))
-    
-    story.append(KeepTogether(main_table))
-    add_footer_sections(story, 'Locking Element for Conveyor')
-    doc.build(story, canvasmaker=NumberedCanvas)
-    print(f"✓ Locking Element for Conveyor PDF generated: {filepath}\n")
-
-    
-    # Row 1: Main section headers
-    section_row = [
-        '',  # SL No
-        '',  # Pulley type
-        '',  # Tag number
-        '',  # Application
-        '',  # Pulley Qty
-        Paragraph('<b>Customer Datasheet</b>', header_style),  # Spans many columns
-        '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
-        Paragraph('<b>RINGSPANN Product</b>', header_style),  # Spans last columns
-        '', '', '', ''
-    ]
-    
-    # Row 2: Sub-section headers
-    subsection_row = [
-        '',  # SL No
-        '',  # Pulley type
-        '',  # Tag number
-        '',  # Application
-        '',  # Pulley Qty
-        '',  # Hub material
-        '',  # Shaft diameter
-        '',  # Outer diameter pulley
-        Paragraph('<b>Running condition</b>', header_style),  # Spans 4
-        '', '', '',
-        Paragraph('<b>Starting condition</b>', header_style),  # Spans 4
-        '', '', '',
-        '',  # Arm length
-        '',  # Wrap angle
-        '',  # start-up factor Running
-        '',  # start-up factor starting
-        Paragraph('<b>Running condition</b>', header_style),  # Spans 2
-        '',
-        Paragraph('<b>Starting condition</b>', header_style),  # Spans 2
-        '',
-        '',  # Locking element
-        '',  # Product code
-        '',  # Size
-        '',  # Hub inner diameter
-        '',  # Hub outer diameter
-        '',  # Hub length
-        '',  # Torque
-        '',  # Bending moment
-        '',  # Screw Tightening torque
-        '',  # Shaft pressure
-        '',  # Technical points
-    ]
-    
-    # Row 3: Condition type headers
-    conditiontype_row = [
-        '',  # SL No
-        '',  # Pulley type
-        '',  # Tag number
-        '',  # Application
-        '',  # Pulley Qty
-        '',  # Hub material
-        '',  # Shaft diameter
-        '',  # Outer diameter pulley
-        Paragraph('<b>Tension<br/>tight side<br/>(T1)</b>', header_style),
-        Paragraph('<b>Tension<br/>slack side<br/>(T2)</b>', header_style),
-        Paragraph('<b>Tension<br/>tight side<br/>belt</b>', header_style),
-        Paragraph('<b>Tension<br/>slack side<br/>belt</b>', header_style),
-        Paragraph('<b>Tension<br/>tight side<br/>(T1)</b>', header_style),
-        Paragraph('<b>Tension<br/>slack side<br/>(T2)</b>', header_style),
-        Paragraph('<b>Tension<br/>tight side<br/>belt</b>', header_style),
-        Paragraph('<b>Tension<br/>slack side<br/>belt</b>', header_style),
-        '',  # Arm length
-        '',  # Wrap angle
-        '',  # start-up Running
-        '',  # start-up starting
-        Paragraph('<b>Torque<br/>(M)</b>', header_style),
-        Paragraph('<b>Bending<br/>moment</b>', header_style),
-        Paragraph('<b>Torque<br/>(M)</b>', header_style),
-        Paragraph('<b>Bending<br/>moment</b>', header_style),
-        '',  # Locking element
-        '',  # Product code
-        '',  # Size
-        '',  # Hub inner diameter
-        '',  # Hub outer diameter
-        '',  # Hub length
-        '',  # Torque
-        '',  # Bending moment
-        '',  # Screw Tightening torque
-        '',  # Shaft pressure
-        '',  # Technical points
-    ]
-    
-    # Row 4: Detailed column headers
-    detail_row = [
-        Paragraph('<b>SL No.</b>', header_style),
-        Paragraph('<b>Pulley<br/>type</b>', header_style),
-        Paragraph('<b>Tag<br/>number</b>', header_style),
-        Paragraph('<b>Application</b>', header_style),
-        Paragraph('<b>Pulley<br/>Qty</b>', header_style),
-        Paragraph('<b>Hub<br/>material<br/>Yield<br/>strength<br/>(Re)<br/>N/mm2</b>', header_style),
-        Paragraph('<b>Shaft<br/>diameter<br/>(d)<br/>mm</b>', header_style),
-        Paragraph('<b>Outer<br/>diameter<br/>pulley<br/>(D2)<br/>mm</b>', header_style),
-        Paragraph('<b>kN</b>', header_style),
-        Paragraph('<b>kN</b>', header_style),
-        Paragraph('<b>kN</b>', header_style),
-        Paragraph('<b>kN</b>', header_style),
-        Paragraph('<b>kN</b>', header_style),
-        Paragraph('<b>kN</b>', header_style),
-        Paragraph('<b>kN</b>', header_style),
-        Paragraph('<b>kN</b>', header_style),
-        Paragraph('<b>Arm<br/>length<br/>(L)<br/>mm</b>', header_style),
-        Paragraph('<b>Wrap<br/>angle<br/>(θ)<br/>deg</b>', header_style),
-        Paragraph('<b>start-up<br/>factor<br/>Running<br/>condition</b>', header_style),
-        Paragraph('<b>start-up<br/>factor<br/>starting<br/>condition</b>', header_style),
-        Paragraph('<b>Nm</b>', header_style),
-        Paragraph('<b>Nm</b>', header_style),
-        Paragraph('<b>Nm</b>', header_style),
-        Paragraph('<b>Nm</b>', header_style),
-        Paragraph('<b>Locking<br/>element<br/>Qty</b>', header_style),
-        Paragraph('<b>Product<br/>code</b>', header_style),
-        Paragraph('<b>Size</b>', header_style),
-        Paragraph('<b>Hub<br/>inner<br/>diameter<br/>(D)<br/>mm</b>', header_style),
-        Paragraph('<b>Hub<br/>outer<br/>diameter<br/>(Knm)<br/>mm</b>', header_style),
-        Paragraph('<b>Hub<br/>length<br/>(Knm)<br/>mm</b>', header_style),
-        Paragraph('<b>Torque<br/>(Mnet)<br/>Nm</b>', header_style),
-        Paragraph('<b>Bending<br/>moment<br/>(Ms)<br/>Nm</b>', header_style),
-        Paragraph('<b>Screw<br/>Tightening<br/>torque<br/>(Ms)<br/>Nm</b>', header_style),
-        Paragraph('<b>Shaft<br/>pressure<br/>(Pw)<br/>N/mm2</b>', header_style),
-        Paragraph('<b>Technical<br/>points</b>', header_style),
-    ]
-    
-    table_data = [section_row, subsection_row, conditiontype_row, detail_row]
-    
-    # Add data rows for LOCKING ELEMENT requirements
-    for idx, req in enumerate(requirements):
-        req_id = str(req.get('id', ''))
-        tech_quote = technical_quotes.get(req_id, {})
-        
-        cust_reqs = tech_quote.get('customer_requirements', tech_quote.get('customerRequirements', req))
-        tech_fields = tech_quote.get('technical_fields', tech_quote.get('technicalFields', tech_quote))
-        
-        row = [
-            Paragraph(str(idx + 1), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Pulley type', 'pulleyType', 'pulley_type'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Tag number', 'tagNumber', 'tag_number'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Application', 'application'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Pulley Qty', 'pulleyQty', 'pulley_qty'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Hub material Yield strength', 'hubMaterialYieldStrength', 'hub_material_yield_strength'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Shaft diameter', 'shaftDiameter', 'shaft_diameter'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Outer diameter pulley', 'outerDiameterPulley', 'outer_diameter_pulley'), cell_style),
-            # Running condition (4)
-            Paragraph(get_field_value(cust_reqs, 'Running Tension tight side T1', 'runningTensionT1', 'running_tension_t1'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Running Tension slack side T2', 'runningTensionT2', 'running_tension_t2'), cell_style),
-           
-            # Starting condition (4)
-            Paragraph(get_field_value(cust_reqs, 'Starting Tension tight side T1', 'startingTensionT1', 'starting_tension_t1'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Starting Tension slack side T2', 'startingTensionT2', 'starting_tension_t2'), cell_style),
-            
-            # Arm, wrap, factors
-            Paragraph(get_field_value(cust_reqs, 'Arm length', 'armLength', 'arm_length'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Wrap angle', 'wrapAngle', 'wrap_angle'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Start-up factor Running', 'startUpFactorRunning', 'start_up_factor_running'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Start-up factor Starting', 'startUpFactorStarting', 'start_up_factor_starting'), cell_style),
-            # Running condition torques (2)
-            Paragraph(get_field_value(cust_reqs, 'Running Torque', 'runningTorque', 'running_torque'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Running Bending moment', 'runningBendingMoment', 'running_bending_moment'), cell_style),
-            # Starting condition torques (2)
-            Paragraph(get_field_value(cust_reqs, 'Starting Torque', 'startingTorque', 'starting_torque'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Starting Bending moment', 'startingBendingMoment', 'starting_bending_moment'), cell_style),
-            # RINGSPANN Product (10)
-            Paragraph(get_field_value(tech_fields, 'Locking element Qty', 'lockingElementQty', 'locking_element_qty'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Product code', 'productCode', 'product_code'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Size', 'size'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Hub inner diameter', 'hubInnerDiameter', 'hub_inner_diameter'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Hub outer diameter', 'hubOuterDiameter', 'hub_outer_diameter'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Hub length', 'hubLength', 'hub_length'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Torque Mnet', 'torqueMnet', 'torque_mnet'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Bending moment Ms', 'bendingMomentMs', 'bending_moment_ms'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Screw Tightening torque', 'screwTighteningTorque', 'screw_tightening_torque'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Shaft pressure', 'shaftPressure', 'shaft_pressure'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Technical points', 'technicalPoints', 'technical_points'), cell_style),
-        ]
-        table_data.append(row)
-    
-    # Fill empty rows to minimum
-    while len(table_data) < 8:  # 4 header rows + 4 data rows
-        empty_row = [Paragraph(str(len(table_data) - 3), cell_style)] + [Paragraph('-', cell_style) for _ in range(34)]
-        table_data.append(empty_row)
-    
-    # Column widths for locking element template (35 columns total!)
-    # Very narrow columns to fit everything
-    col_widths = [
-        6*mm,   # SL No
-        7*mm,   # Pulley type
-        8*mm,   # Tag number
-        9*mm,   # Application
-        6*mm,   # Pulley Qty
-        8*mm,   # Hub material
-        7*mm,   # Shaft diameter
-        7*mm,   # Outer diameter pulley
-        6*mm,   # Running T1
-        6*mm,   # Running T2
-        6*mm,   # Running belt tight
-        6*mm,   # Running belt slack
-        6*mm,   # Starting T1
-        6*mm,   # Starting T2
-        6*mm,   # Starting belt tight
-        6*mm,   # Starting belt slack
-        7*mm,   # Arm length
-        7*mm,   # Wrap angle
-        7*mm,   # Factor running
-        7*mm,   # Factor starting
-        6*mm,   # Running Torque
-        6*mm,   # Running Bending
-        6*mm,   # Starting Torque
-        6*mm,   # Starting Bending
-        7*mm,   # Locking element Qty
-        10*mm,  # Product code
-        7*mm,   # Size
-        7*mm,   # Hub inner
-        7*mm,   # Hub outer
-        7*mm,   # Hub length
-        6*mm,   # Torque Mnet
-        6*mm,   # Bending Ms
-        7*mm,   # Screw torque
-        7*mm,   # Shaft pressure
-        9*mm,   # Technical points
-    ]
-    
-    main_table = Table(table_data, colWidths=col_widths, repeatRows=4)
-    main_table.setStyle(TableStyle([
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        
-        # ROW 0: Main section headers
-        ('SPAN', (0, 0), (4, 3)),    # SL No, Pulley type, Tag, App, Pulley Qty span all 4 header rows
-        ('SPAN', (5, 0), (23, 0)),   # "Customer Datasheet" spans columns 5-23
-        ('SPAN', (24, 0), (34, 0)),  # "RINGSPANN Product" spans columns 24-34
-        
-        # ROW 1: Sub-section headers
-        ('SPAN', (5, 1), (5, 3)),    # Hub material
-        ('SPAN', (6, 1), (6, 3)),    # Shaft diameter
-        ('SPAN', (7, 1), (7, 3)),    # Outer diameter pulley
-        ('SPAN', (8, 1), (11, 1)),   # Running condition spans 4
-        ('SPAN', (12, 1), (15, 1)),  # Starting condition spans 4
-        ('SPAN', (16, 1), (16, 3)),  # Arm length
-        ('SPAN', (17, 1), (17, 3)),  # Wrap angle
-        ('SPAN', (18, 1), (18, 3)),  # start-up factor Running
-        ('SPAN', (19, 1), (19, 3)),  # start-up factor starting
-        ('SPAN', (20, 1), (21, 1)),  # Running condition (torque) spans 2
-        ('SPAN', (22, 1), (23, 1)),  # Starting condition (torque) spans 2
-        ('SPAN', (24, 1), (24, 3)),  # Locking element Qty
-        ('SPAN', (25, 1), (25, 3)),  # Product code
-        ('SPAN', (26, 1), (26, 3)),  # Size
-        ('SPAN', (27, 1), (27, 3)),  # Hub inner diameter
-        ('SPAN', (28, 1), (28, 3)),  # Hub outer diameter
-        ('SPAN', (29, 1), (29, 3)),  # Hub length
-        ('SPAN', (30, 1), (30, 3)),  # Torque
-        ('SPAN', (31, 1), (31, 3)),  # Bending moment
-        ('SPAN', (32, 1), (32, 3)),  # Screw Tightening torque
-        ('SPAN', (33, 1), (33, 3)),  # Shaft pressure
-        ('SPAN', (34, 1), (34, 3)),  # Technical points
-        
-        # ROW 2: Condition types (tension details)
-        ('SPAN', (8, 2), (8, 3)),    # Tension tight side T1 (running)
-        ('SPAN', (9, 2), (9, 3)),    # Tension slack side T2 (running)
-        ('SPAN', (10, 2), (10, 3)),  # Tension tight side belt (running)
-        ('SPAN', (11, 2), (11, 3)),  # Tension slack side belt (running)
-        ('SPAN', (12, 2), (12, 3)),  # Tension tight side T1 (starting)
-        ('SPAN', (13, 2), (13, 3)),  # Tension slack side T2 (starting)
-        ('SPAN', (14, 2), (14, 3)),  # Tension tight side belt (starting)
-        ('SPAN', (15, 2), (15, 3)),  # Tension slack side belt (starting)
-        ('SPAN', (20, 2), (20, 3)),  # Torque (running)
-        ('SPAN', (21, 2), (21, 3)),  # Bending moment (running)
-        ('SPAN', (22, 2), (22, 3)),  # Torque (starting)
-        ('SPAN', (23, 2), (23, 3)),  # Bending moment (starting)
-        
-        # Font and styling
-        ('FONTSIZE', (0, 0), (-1, -1), 3.8),
-        ('FONTNAME', (0, 0), (-1, 3), 'Helvetica-Bold'),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 1),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0.5),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0.5),
-    ]))
-    
-    story.append(KeepTogether(main_table))
-    add_footer_sections(story, 'Locking Element for Conveyor')
-    doc.build(story, canvasmaker=NumberedCanvas)
-    print(f"✓ Locking Element for Conveyor PDF generated: {filepath}\n")
-
-
-    """Generate Over Running Clutch Technical Quotation PDF - EXACT TEMPLATE MATCH"""
-    
-    print(f"\n{'='*60}")
-    print(f"GENERATING OVER RUNNING CLUTCH TECHNICAL PDF")
-    print(f"{'='*60}")
-    print(f"Requirements: {len(requirements)}")
-    
-    doc = SimpleDocTemplate(str(filepath), pagesize=landscape(A4),
-                          rightMargin=10*mm, leftMargin=10*mm,
-                          topMargin=10*mm, bottomMargin=15*mm)
-    story = []
-    
-    add_header_and_metadata(story, "OVER RUNNING CLUTCH TECHNICAL QUOTATION", metadata)
-    
-    # ==================== CLUTCH-SPECIFIC TABLE ====================
-    cell_style = ParagraphStyle('CellStyle', fontSize=4.5, alignment=TA_CENTER, leading=5)
-    header_style = ParagraphStyle('HeaderStyle', fontSize=4.5, alignment=TA_CENTER, leading=5, fontName='Helvetica-Bold')
-    
-    # CLUTCH EXACT COLUMNS FROM TEMPLATE
-    # Four-row header structure with complex spanning
-    
-    # Row 1: Main section headers
-    section_row = [
-        '',  # SL No (spans all rows)
-        Paragraph('<b>Customer Datasheet</b>', header_style),  # Spans most columns
-        '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
-        Paragraph('<b>RINGSPANN Product</b>', header_style),  # Spans last columns
-        '', '', ''
-    ]
-    
-    # Row 2: Sub-section headers
-    subsection_row = [
-        '',  # SL No
-        '',  # Tag number
-        '',  # Application
-        Paragraph('<b>Shaft diameter</b>', header_style),  # Spans 4 columns
-        '', '', '',
-        Paragraph('<b>Torque (Mn)</b>', header_style),  # Spans 4 columns
-        '', '', '',
-        Paragraph('<b>Speed</b>', header_style),  # Spans 6 columns
-        '', '', '', '', '',
-        '',  # Operating hours
-        Paragraph('<b>Direction of rotation<br/>from drive side</b>', header_style),  # Spans 2 columns
-        '',
-        '',  # Product code
-        '',  # Size
-        '',  # Technical points
-    ]
-    
-    # Row 3: Drive type headers
-    drivetype_row = [
-        '',  # SL No
-        '',  # Tag number
-        '',  # Application
-        Paragraph('<b>Main drive</b>', header_style),  # Spans 2
-        '',
-        Paragraph('<b>Auxiliary drive</b>', header_style),  # Spans 2
-        '',
-        Paragraph('<b>Main drive</b>', header_style),  # Spans 2
-        '',
-        Paragraph('<b>Auxiliary drive</b>', header_style),  # Spans 2
-        '',
-        Paragraph('<b>Main drive</b>', header_style),  # Spans 3
-        '', '',
-        Paragraph('<b>Auxiliary drive</b>', header_style),  # Spans 3
-        '', '',
-        '',  # Operating hours
-        '',  # Main drive (direction)
-        '',  # Auxiliary drive (direction)
-        '',  # Product code
-        '',  # Size
-        '',  # Technical points
-    ]
-    
-    # Row 4: Detailed column headers
-    detail_row = [
-        Paragraph('<b>SL No.</b>', header_style),
-        Paragraph('<b>Tag<br/>number</b>', header_style),
-        Paragraph('<b>Application</b>', header_style),
-        Paragraph('<b>Drive<br/>mm</b>', header_style),
-        Paragraph('<b>Driven<br/>mm</b>', header_style),
-        Paragraph('<b>Drive<br/>mm</b>', header_style),
-        Paragraph('<b>Driven<br/>mm</b>', header_style),
-        Paragraph('<b>Min<br/>Nm</b>', header_style),
-        Paragraph('<b>Max<br/>Nm</b>', header_style),
-        Paragraph('<b>Min<br/>Nm</b>', header_style),
-        Paragraph('<b>Max<br/>Nm</b>', header_style),
-        Paragraph('<b>Min<br/>RPM</b>', header_style),
-        Paragraph('<b>Rated</b>', header_style),
-        Paragraph('<b>Max</b>', header_style),
-        Paragraph('<b>Min<br/>RPM</b>', header_style),
-        Paragraph('<b>Rated</b>', header_style),
-        Paragraph('<b>Max</b>', header_style),
-        Paragraph('<b>Operating<br/>hours<br/>daily</b>', header_style),
-        Paragraph('<b>Main<br/>drive</b>', header_style),
-        Paragraph('<b>Auxiliary<br/>drive</b>', header_style),
-        Paragraph('<b>Product<br/>code</b>', header_style),
-        Paragraph('<b>Size</b>', header_style),
-        Paragraph('<b>Technical<br/>points</b>', header_style),
-    ]
-    
-    table_data = [section_row, subsection_row, drivetype_row, detail_row]
-    
-    # Add data rows for CLUTCH requirements
-    for idx, req in enumerate(requirements):
-        req_id = str(req.get('id', ''))
-        tech_quote = technical_quotes.get(req_id, {})
-        
-        cust_reqs = tech_quote.get('customer_requirements', tech_quote.get('customerRequirements', req))
-        tech_fields = tech_quote.get('technical_fields', tech_quote.get('technicalFields', tech_quote))
-        
-        row = [
-            Paragraph(str(idx + 1), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Tag number', 'tagNumber', 'tag_number'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Application', 'application'), cell_style),
-            # Shaft diameter - Main drive
-            Paragraph(get_field_value(cust_reqs, 'Shaft diameter Main drive Drive', 'shaftDiameterMainDrive', 'shaft_diameter_main_drive'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Shaft diameter Main drive Driven', 'shaftDiameterMainDriven', 'shaft_diameter_main_driven'), cell_style),
-            # Shaft diameter - Auxiliary drive
-            Paragraph(get_field_value(cust_reqs, 'Shaft diameter Auxiliary drive Drive', 'shaftDiameterAuxDrive', 'shaft_diameter_aux_drive'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Shaft diameter Auxiliary drive Driven', 'shaftDiameterAuxDriven', 'shaft_diameter_aux_driven'), cell_style),
-            # Torque - Main drive
-            Paragraph(get_field_value(cust_reqs, 'Torque Main drive Min', 'torqueMainMin', 'torque_main_min'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Torque Main drive Max', 'torqueMainMax', 'torque_main_max'), cell_style),
-            # Torque - Auxiliary drive
-            Paragraph(get_field_value(cust_reqs, 'Torque Auxiliary drive Min', 'torqueAuxMin', 'torque_aux_min'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Torque Auxiliary drive Max', 'torqueAuxMax', 'torque_aux_max'), cell_style),
-            # Speed - Main drive
-            Paragraph(get_field_value(cust_reqs, 'Speed Main drive Min', 'speedMainMin', 'speed_main_min'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Speed Main drive Rated', 'speedMainRated', 'speed_main_rated'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Speed Main drive Max', 'speedMainMax', 'speed_main_max'), cell_style),
-            # Speed - Auxiliary drive
-            Paragraph(get_field_value(cust_reqs, 'Speed Auxiliary drive Min', 'speedAuxMin', 'speed_aux_min'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Speed Auxiliary drive Rated', 'speedAuxRated', 'speed_aux_rated'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Speed Auxiliary drive Max', 'speedAuxMax', 'speed_aux_max'), cell_style),
-            # Operating hours
-            Paragraph(get_field_value(cust_reqs, 'Operating hours', 'operatingHours', 'operating_hours'), cell_style),
-            # Direction of rotation
-            Paragraph(get_field_value(cust_reqs, 'Direction Main drive', 'directionMain', 'direction_main'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Direction Auxiliary drive', 'directionAux', 'direction_aux'), cell_style),
-            # RINGSPANN Product
-            Paragraph(get_field_value(tech_fields, 'Product code', 'productCode', 'product_code'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Size', 'size'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Technical points', 'technicalPoints', 'technical_points'), cell_style),
-        ]
-        table_data.append(row)
-    
-    # Fill empty rows to minimum
-    while len(table_data) < 8:  # 4 header rows + 4 data rows
-        empty_row = [Paragraph(str(len(table_data) - 3), cell_style)] + [Paragraph('-', cell_style) for _ in range(22)]
-        table_data.append(empty_row)
-    
-    # Column widths for clutch template (23 columns total)
-    # Reduced widths to fit landscape page
-    col_widths = [
-        7*mm,   # SL No
-        10*mm,  # Tag number
-        12*mm,  # Application
-        9*mm,   # Main Drive Drive
-        9*mm,   # Main Drive Driven
-        9*mm,   # Aux Drive Drive
-        9*mm,   # Aux Drive Driven
-        9*mm,   # Torque Main Min
-        9*mm,   # Torque Main Max
-        9*mm,   # Torque Aux Min
-        9*mm,   # Torque Aux Max
-        9*mm,   # Speed Main Min
-        9*mm,   # Speed Main Rated
-        9*mm,   # Speed Main Max
-        9*mm,   # Speed Aux Min
-        9*mm,   # Speed Aux Rated
-        9*mm,   # Speed Aux Max
-        11*mm,  # Operating hours
-        10*mm,  # Direction Main
-        10*mm,  # Direction Aux
-        14*mm,  # Product code
-        10*mm,  # Size
-        14*mm,  # Technical points
-    ]
-    
-    main_table = Table(table_data, colWidths=col_widths, repeatRows=4)
-    main_table.setStyle(TableStyle([
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        
-        # ROW 0: Main section headers
-        ('SPAN', (0, 0), (0, 3)),    # SL No spans all 4 header rows
-        ('SPAN', (1, 0), (17, 0)),   # "Customer Datasheet" spans columns 1-17
-        ('SPAN', (18, 0), (22, 0)),  # "RINGSPANN Product" spans columns 18-22
-        
-        # ROW 1: Sub-section headers
-        ('SPAN', (1, 1), (1, 3)),    # Tag number
-        ('SPAN', (2, 1), (2, 3)),    # Application
-        ('SPAN', (3, 1), (6, 1)),    # Shaft diameter spans 4 columns
-        ('SPAN', (7, 1), (10, 1)),   # Torque (Mn) spans 4 columns
-        ('SPAN', (11, 1), (16, 1)),  # Speed spans 6 columns
-        ('SPAN', (17, 1), (17, 3)),  # Operating hours
-        ('SPAN', (18, 1), (19, 1)),  # Direction of rotation spans 2 columns
-        ('SPAN', (20, 1), (20, 3)),  # Product code
-        ('SPAN', (21, 1), (21, 3)),  # Size
-        ('SPAN', (22, 1), (22, 3)),  # Technical points
-        
-        # ROW 2: Drive type headers
-        ('SPAN', (3, 2), (4, 2)),    # Main drive (shaft)
-        ('SPAN', (5, 2), (6, 2)),    # Auxiliary drive (shaft)
-        ('SPAN', (7, 2), (8, 2)),    # Main drive (torque)
-        ('SPAN', (9, 2), (10, 2)),   # Auxiliary drive (torque)
-        ('SPAN', (11, 2), (13, 2)),  # Main drive (speed)
-        ('SPAN', (14, 2), (16, 2)),  # Auxiliary drive (speed)
-        ('SPAN', (18, 2), (18, 3)),  # Main drive (direction)
-        ('SPAN', (19, 2), (19, 3)),  # Auxiliary drive (direction)
-        
-        # Font and styling
-        ('FONTSIZE', (0, 0), (-1, -1), 4.5),
-        ('FONTNAME', (0, 0), (-1, 3), 'Helvetica-Bold'),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('TOPPADDING', (0, 0), (-1, -1), 1.5),
@@ -1633,10 +1099,9 @@ def generate_locking_element_technical_pdf(quotation_number, metadata, requireme
     ]))
     
     story.append(KeepTogether(main_table))
-    add_footer_sections(story, 'Over Running Clutch')
+    add_footer_sections(story, 'Locking Element for Conveyor')
     doc.build(story, canvasmaker=NumberedCanvas)
-    print(f"✓ Over Running Clutch PDF generated: {filepath}\n")
-
+    print(f"✓ Locking Element for Conveyor PDF generated: {filepath}\n")
 
 
 def generate_technical_pdf_dispatch(quotation_number, metadata, requirements, technical_quotes, output_dir):
