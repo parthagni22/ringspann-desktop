@@ -42,18 +42,20 @@ const FIELD_DEFINITIONS = {
     { label: "Service Factor", type: "number" }
   ],
   "Coupling and Torque Limiter Quotation": [
-    { label: "SL No.", type: "text" },
-    { label: "Tag Number", type: "text" },
-    { label: "Application", type: "text" },
-    { label: "Motor KW", type: "number" },
-    { label: "Number of Drive", type: "number" },
-    { label: "Torque (Mn) Min (Nm)", type: "number" },
-    { label: "Torque (Mn) Max (Nm)", type: "number" },
-    { label: "Speed at Coupling Min (RPM)", type: "number" },
-    { label: "Speed at Coupling Rated (RPM)", type: "number" },
-    { label: "Speed at Coupling Max (RPM)", type: "number" },
-    { label: "Service Factor", type: "number" }
+  { label: "SL No.", type: "text" },
+  { label: "Tag Number", type: "text" },
+  { label: "Application", type: "text" },
+  { label: "Motor KW", type: "number" },
+  { label: "Number of Drive", type: "number" },
+  { label: "Torque (Mn) Min (Nm)", type: "number" },
+  { label: "Torque (Mn) Max (Nm)", type: "number" },
+  { label: "Speed at Coupling Min (RPM)", type: "number" },
+  { label: "Speed at Coupling Rated (RPM)", type: "number" },
+  { label: "Speed at Coupling Max (RPM)", type: "number" },
+  { label: "Service Factor", type: "number" }
   ],
+
+  
   "Locking Element for Conveyor Quotation": [
   { label: "SL No.", type: "text" },
   { label: "Pulley type", type: "text" },

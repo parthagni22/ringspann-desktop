@@ -765,34 +765,38 @@ def generate_coupling_technical_pdf(quotation_number, metadata, requirements, te
     
     table_data = [section_row, header_row, subheader_row]
     
-    # Add data rows for COUPLING requirements
+     # In backend/app/api/technical_pdf_generator.py
+    # Around line 850-880 in generate_coupling_technical_pdf()
+
+    # Find this section and update it:
+
     for idx, req in enumerate(requirements):
         req_id = str(req.get('id', ''))
         tech_quote = technical_quotes.get(req_id, {})
-        
+    
         cust_reqs = tech_quote.get('customer_requirements', tech_quote.get('customerRequirements', req))
         tech_fields = tech_quote.get('technical_fields', tech_quote.get('technicalFields', tech_quote))
-        
+    
         row = [
             Paragraph(str(idx + 1), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Tag number', 'tagNumber', 'tag_number'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Tag number', 'Tag Number', 'tagNumber', 'tag_number'), cell_style),
             Paragraph(get_field_value(cust_reqs, 'Application', 'application'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Motor KW', 'motorKW', 'motor_kw'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Number of drive', 'numberOfDrive', 'number_of_drive'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Motor KW', 'Motor KW', 'motorKW', 'motor_kw'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Number of drive', 'Number of Drive', 'numberOfDrive', 'number_of_drive'), cell_style),
             # Torque
-            Paragraph(get_field_value(cust_reqs, 'Torque Min', 'torqueMin', 'torque_min'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Torque Max', 'torqueMax', 'torque_max'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Torque (Mn) Min (Nm)', 'Torque Min', 'torqueMin', 'torque_min'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Torque (Mn) Max (Nm)', 'Torque Max', 'torqueMax', 'torque_max'), cell_style),
             # Speed at coupling
-            Paragraph(get_field_value(cust_reqs, 'Speed at coupling Min', 'speedMin', 'speed_min'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Speed at coupling Rated', 'speedRated', 'speed_rated'), cell_style),
-            Paragraph(get_field_value(cust_reqs, 'Speed at coupling Max', 'speedMax', 'speed_max'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Speed at Coupling Min (RPM)', 'Speed at coupling Min', 'speedMin', 'speed_min'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Speed at Coupling Rated (RPM)', 'Speed at coupling Rated', 'speedRated', 'speed_rated'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Speed at Coupling Max (RPM)', 'Speed at coupling Max', 'speedMax', 'speed_max'), cell_style),
             # Service factor
-            Paragraph(get_field_value(cust_reqs, 'Service factor', 'serviceFactor', 'service_factor'), cell_style),
-            # RINGSPANN Product
-            Paragraph(get_field_value(tech_fields, 'Qty', 'quantity', 'qty'), cell_style),
+            Paragraph(get_field_value(cust_reqs, 'Service Factor', 'Service factor', 'serviceFactor', 'service_factor'), cell_style),
+            # RINGSPANN Product - UPDATED FIELD NAMES
+            Paragraph(get_field_value(tech_fields, 'Ringspann Product Quantity', 'Qty', 'quantity', 'qty'), cell_style),
             Paragraph(get_field_value(tech_fields, 'Model', 'model'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Special requirement', 'specialRequirement', 'special_requirement'), cell_style),
-            Paragraph(get_field_value(tech_fields, 'Technical points', 'technicalPoints', 'technical_points'), cell_style),
+            Paragraph(get_field_value(tech_fields, 'Special Requirements', 'Special requirement', 'specialRequirement', 'special_requirement'), cell_style),
+            Paragraph(get_field_value(tech_fields, 'Technical Points', 'Technical points', 'technicalPoints', 'technical_points'), cell_style),
         ]
         table_data.append(row)
     
@@ -869,7 +873,7 @@ def generate_locking_element_technical_pdf(quotation_number, metadata, requireme
     
     doc = SimpleDocTemplate(str(filepath), pagesize=landscape(A4),
                           rightMargin=5*mm, leftMargin=5*mm,
-                          topMargin=10*mm, bottomMargin=15*mm)
+                          topMargin=8*mm, bottomMargin=12*mm)
     story = []
     
     add_header_and_metadata(story, "LOCKING ELEMENT FOR CONVEYOR TECHNICAL QUOTATION", metadata)
