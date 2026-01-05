@@ -55,43 +55,55 @@ const FIELD_DEFINITIONS = {
     { label: "Service Factor", type: "number" }
   ],
   "Locking Element for Conveyor Quotation": [
-    { label: "SL No.", type: "text" },
-    { label: "Pulley type", type: "text" },
-    { label: "Tag number", type: "text" },
-    { label: "Application", type: "text" },
-    { label: "Pulley Qty", type: "number" },
-    { label: "Hub material Yield strength (Re) N/mm2", type: "number" },
-    { label: "Shaft diameter (d) mm", type: "number" },
-    { label: "Outer diameter of pulley (D2) mm", type: "number" },
-    { label: "Tension tight side Running condition (T1) KN", type: "number" },
-    { label: "Tension slack side Running condition (T2) KN", type: "number" },
-    { label: "Tension tight side Starting condition (T1) KN", type: "number" },
-    { label: "Tension slack side Starting condition (T2) KN", type: "number" },
-    { label: "Arm length (L) mm", type: "number" },
-    { label: "Wrap angel (β) deg", type: "number" },
-    { label: "Torque Running condition (M) Nm", type: "number" },
-    { label: "Bending moment Running condition (Mb) Nm", type: "number" },
-    { label: "Torque Starting condition (M) Nm", type: "number" },
-    { label: "Bending moment Starting condition (Mb) Nm", type: "number" }
+  { label: "SL No.", type: "text" },
+  { label: "Pulley type", type: "text" },
+  { label: "Tag number", type: "text" },
+  { label: "Application", type: "text" },
+  { label: "Pulley Qty", type: "number" },
+  { label: "Hub material Yield strength (Re) N/mm2", type: "number" },
+  { label: "Shaft diameter (d) mm", type: "number" },
+  { label: "Outer diameter of pulley (D2) mm", type: "number" },
+  
+  // Running condition - 4 fields
+  { label: "Tension tight side Running condition (T1) KN", type: "number" },
+  { label: "Tension slack side Running condition (T2) KN", type: "number" },  
+  
+  
+  // Starting condition - 4 fields
+  { label: "Tension tight side Starting condition (T1) KN", type: "number" },
+  { label: "Tension slack side Starting condition (T2) KN", type: "number" },
+  
+  
+  { label: "Arm length (L) mm", type: "number" },
+  { label: "Wrap angel (β) deg", type: "number" },
+  
+  { label: "start-up factor Running condition", type: "number" },  
+  { label: "start-up factor starting condition", type: "number" },  
+  
+  { label: "Torque Running condition (M) Nm", type: "number" },
+  { label: "Bending moment Running condition (Mb) Nm", type: "number" },
+  { label: "Torque Starting condition (M) Nm", type: "number" },
+  { label: "Bending moment Starting condition (Mb) Nm", type: "number" }
   ],
+  
   "Over Running Clutch Quotation": [
     { label: "SL No.", type: "text" },
     { label: "Tag number", type: "text" },
     { label: "Application", type: "text" },
-    { label: "Main drive - Drive (mm)", type: "number" },
-    { label: "Main drive - Driven (mm)", type: "number" },
-    { label: "Auxiliary drive - Drive (mm)", type: "number" },
-    { label: "Auxiliary drive - Driven (mm)", type: "number" },
-    { label: "Main drive - Min (Nm)", type: "number" },
-    { label: "Main drive - Max (Nm)", type: "number" },
-    { label: "Auxiliary drive - Min (Nm)", type: "number" },
-    { label: "Auxiliary drive - Max (Nm)", type: "number" },
-    { label: "Main drive - Min (RPM)", type: "number" },
-    { label: "Main drive - Rated (RPM)", type: "number" },
-    { label: "Main drive - Max (RPM)", type: "number" },
-    { label: "Auxiliary drive - Min (RPM)", type: "number" },
-    { label: "Auxiliary drive - Rated (RPM)", type: "number" },
-    { label: "Auxiliary drive - Max (RPM)", type: "number" },
+    { label: "Shaft diameter Main drive - Drive (mm)", type: "number" },
+    { label: "Shaft diameter Main drive - Driven (mm)", type: "number" },
+    { label: "Shaft diameter Auxiliary drive - Drive (mm)", type: "number" },
+    { label: "Shaft diameter Auxiliary drive - Driven (mm)", type: "number" },
+    { label: "Torque  Main drive - Min (Nm)", type: "number" },
+    { label: "Torque Main drive - Max (Nm)", type: "number" },
+    { label: "Torque Auxiliary drive - Min (Nm)", type: "number" },
+    { label: "Torque Auxiliary drive - Max (Nm)", type: "number" },
+    { label: "Speed Main drive - Min (RPM)", type: "number" },
+    { label: "Speed Main drive - Rated (RPM)", type: "number" },
+    { label: "Speed Main drive - Max (RPM)", type: "number" },
+    { label: "Speed Auxiliary drive - Min (RPM)", type: "number" },
+    { label: "Speed Auxiliary drive - Rated (RPM)", type: "number" },
+    { label: "Speed Auxiliary drive - Max (RPM)", type: "number" },
     { label: "Operating hours - daily", type: "number" },
     { label: "Direction of rotation from drive side - Main drive", type: "text" },
     { label: "Direction of rotation from drive side - Auxiliary drive", type: "text" }
