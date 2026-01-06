@@ -9,7 +9,7 @@ class CommercialQuotation(Base, TimestampMixin):
     __tablename__ = 'commercial_quotations'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    quotation_number = Column(String(50), ForeignKey('projects.quotation_number'), nullable=False, index=True)
+    quotation_number = Column(String(50), ForeignKey('projects.quotation_number', ondelete='CASCADE'), nullable=False, index=True)
     
     # Header information
     to = Column(String(200))

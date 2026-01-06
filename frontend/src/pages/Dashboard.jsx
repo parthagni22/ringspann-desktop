@@ -42,10 +42,7 @@ const Dashboard = () => {
     navigate('/quotation/new');
   };
 
-  const handleUpload = () => {
-    // Handle file upload
-    alert('Upload functionality coming soon');
-  };
+  
 
   const handleAnalytics = () => {
     // Navigate to analytics
@@ -104,9 +101,6 @@ const Dashboard = () => {
           <div style={styles.actionButtons}>
             <button onClick={handleNewProject} style={styles.actionBtn}>
               New
-            </button>
-            <button onClick={handleUpload} style={styles.actionBtn}>
-              Upload
             </button>
             <button onClick={handleAnalytics} style={styles.actionBtn}>
               Analytics

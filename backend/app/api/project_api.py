@@ -7,6 +7,8 @@ from app.database.connection import SessionLocal
 from app.models.project import Project
 from app.models.customer import Customer
 from app.utils.logger import setup_logger
+from app.models.technical_quotation import TechnicalQuotation
+from app.models.commercial_quotation import CommercialQuotation
 
 logger = setup_logger()
 project_service = ProjectService()
@@ -23,13 +25,34 @@ def get_recent_projects(limit=10):
 
 @eel.expose
 def delete_project(project_id: int):
-    """Delete project permanently"""
+    """Delete project permanently - CASCADE DELETE"""
+    db = SessionLocal()
     try:
-        project_service.delete(project_id)
-        return {'success': True, 'message': 'Project deleted successfully'}
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            raise Exception("Project not found")
+        
+        # STEP 1: Delete all related technical quotations first
+        db.query(TechnicalQuotation).filter(
+            TechnicalQuotation.quotation_number == project.quotation_number
+        ).delete(synchronize_session=False)
+        
+        # STEP 2: Delete all related commercial quotations
+        db.query(CommercialQuotation).filter(
+            CommercialQuotation.quotation_number == project.quotation_number
+        ).delete(synchronize_session=False)
+        
+        # STEP 3: Now delete the project
+        db.delete(project)
+        db.commit()
+        
+        return {'success': True, 'message': 'Project and all related quotations deleted'}
     except Exception as e:
+        db.rollback()
         logger.error(f"Delete project failed: {e}")
         return {'success': False, 'error': str(e)}
+    finally:
+        db.close()
 
 @eel.expose
 def get_project_by_id(project_id: int):

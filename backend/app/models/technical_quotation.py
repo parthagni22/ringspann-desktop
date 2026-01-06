@@ -9,7 +9,7 @@ class TechnicalQuotation(Base, TimestampMixin):
     __tablename__ = 'technical_quotations'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    quotation_number = Column(String(50), ForeignKey('projects.quotation_number'), nullable=False, index=True)
+    quotation_number = Column(String(50), ForeignKey('projects.quotation_number', ondelete='CASCADE'), nullable=False, index=True)
     
     # Product information
     part_type = Column(String(100), nullable=False, index=True)
