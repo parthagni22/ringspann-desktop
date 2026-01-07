@@ -9,6 +9,8 @@ from app.database.connection import SessionLocal
 from app.services.analytics_service import AnalyticsService
 from app.models.analytics_models import AnalyticsFilters
 from app.utils.logger import setup_logger
+import json
+
 
 logger = setup_logger()
 
@@ -44,7 +46,7 @@ def get_product_analytics(
         # Convert to dict for JSON serialization
         return {
             "success": True,
-            "data": result.dict()
+            "data": result.model_dump()
         }
     except Exception as e:
         logger.error(f"Error in get_product_analytics: {e}")
@@ -118,12 +120,18 @@ def get_finance_analytics(
         
         db.close()
         
+        # Debug: Check what result looks like
+        logger.info(f"Finance result type: {type(result)}")
+        logger.info(f"Finance result: {result}")
+        
         return {
             "success": True,
-            "data": result.dict()
+            "data": result
         }
     except Exception as e:
+        import traceback
         logger.error(f"Error in get_finance_analytics: {e}")
+        logger.error(traceback.format_exc())
         return {
             "success": False,
             "error": str(e)
@@ -217,7 +225,7 @@ def get_customer_analytics(
         
         return {
             "success": True,
-            "data": result.dict()
+            "data": result.model_dump()
         }
     except Exception as e:
         logger.error(f"Error in get_customer_analytics: {e}")
@@ -287,7 +295,7 @@ def get_combined_insights(
         
         return {
             "success": True,
-            "data": result.dict()
+            "data": result.model_dump()
         }
     except Exception as e:
         logger.error(f"Error in get_combined_insights: {e}")

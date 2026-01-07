@@ -7,6 +7,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, or_, case, extract
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
+from app.utils.logger import setup_logger
+
+logger = setup_logger()
 import json
 from app.models import Project, CommercialQuotation, TechnicalQuotation
 from app.models.analytics_models import (
@@ -345,19 +348,28 @@ class AnalyticsService:
     # Continued in next part...
     
     """
-Analytics Service - Part 2
-Finance, Customer, and Combined Insights
-"""
+    Analytics Service - Part 2
+        Finance, Customer, and Combined Insights
+    """
     
     # ========================================================================
     # FINANCE ANALYTICS
     # ========================================================================
     
-    def get_finance_analytics(self, filters: AnalyticsFilters) -> FinanceAnalyticsResponse:
+    def get_finance_analytics(self, filters: AnalyticsFilters):
         """Get complete finance analytics"""
         
-        # Get base query for commercial quotations
-        query = self.db.query(CommercialQuotation).join(
+        # Query WITHOUT items column to avoid JSON parsing errors
+        query = self.db.query(
+            CommercialQuotation.id,
+            CommercialQuotation.quotation_number,
+            CommercialQuotation.total_amount,
+            CommercialQuotation.created_at,
+            CommercialQuotation.updated_at,
+            Project.quote_status,
+            Project.customer_name,
+            Project.created_at.label('project_created_at')
+        ).join(
             Project, CommercialQuotation.quotation_number == Project.quotation_number
         )
         
@@ -365,46 +377,56 @@ Finance, Customer, and Combined Insights
         query = self.apply_status_filter(query, filters)
         query = self.apply_customer_filter(query, filters)
         
-        quotations = query.all()
+        results = query.all()
         
-        # Calculate KPIs
-        total_quoted_value = sum(q.total_amount or 0 for q in quotations)
-        avg_quote_value = total_quoted_value / len(quotations) if quotations else 0
-        total_quotes = len(quotations)
+        # Calculate KPIs from results
+        total_quoted_value = sum(float(r.total_amount or 0) for r in results)
+        total_quotes = len(results)
+        avg_quote_value = total_quoted_value / total_quotes if total_quotes else 0
         
         # Get status breakdown for value by status
-        revenue_by_status = self.get_revenue_by_status(filters)
+        revenue_by_status_data = self.get_revenue_by_status(filters)
         
         # Get product revenue
         product_revenue = self.get_revenue_by_product(filters)
         top_product_revenue = max(product_revenue, key=lambda x: x['revenue']) if product_revenue else None
         
         kpis = {
-            "total_quoted_value": KPICard(
-                label="Total Quoted Value",
-                value=round(total_quoted_value, 2),
-                format_type="currency"
-            ),
-            "total_quotes": KPICard(
-                label="Total Quotes",
-                value=total_quotes,
-                format_type="number"
-            ),
-            "avg_quote_value": KPICard(
-                label="Average Quote Value",
-                value=round(avg_quote_value, 2),
-                format_type="currency"
-            ),
-            "top_product": KPICard(
-                label="Top Revenue Product",
-                value=top_product_revenue['product_type'] if top_product_revenue else "N/A",
-                format_type="text"
-            ),
-            "top_product_revenue": KPICard(
-                label="Top Product Revenue",
-                value=round(top_product_revenue['revenue'], 2) if top_product_revenue else 0,
-                format_type="currency"
-            )
+            "total_quoted_value": {
+                "label": "Total Quoted Value",
+                "value": round(total_quoted_value, 2),
+                "change_percent": None,
+                "change_direction": "neutral",
+                "format_type": "currency"
+            },
+            "total_quotes": {
+                "label": "Total Quotes",
+                "value": total_quotes,
+                "change_percent": None,
+                "change_direction": "neutral",
+                "format_type": "number"
+            },
+            "avg_quote_value": {
+                "label": "Average Quote Value",
+                "value": round(avg_quote_value, 2),
+                "change_percent": None,
+                "change_direction": "neutral",
+                "format_type": "currency"
+            },
+            "top_product": {
+                "label": "Top Revenue Product",
+                "value": top_product_revenue['product_type'] if top_product_revenue else "N/A",
+                "change_percent": None,
+                "change_direction": "neutral",
+                "format_type": "text"
+            },
+            "top_product_revenue": {
+                "label": "Top Product Revenue",
+                "value": round(top_product_revenue['revenue'], 2) if top_product_revenue else 0,
+                "change_percent": None,
+                "change_direction": "neutral",
+                "format_type": "currency"
+            }
         }
         
         # Get charts data
@@ -412,17 +434,17 @@ Finance, Customer, and Combined Insights
         value_distribution = self.get_quote_value_distribution(filters)
         inquiry_timeline = self.get_inquiry_timeline(filters)
         
-        return FinanceAnalyticsResponse(
-            kpis=kpis,
-            revenue_by_status=revenue_by_status,
-            monthly_trend=monthly_trend,
-            product_revenue=product_revenue,
-            value_distribution=value_distribution,
-            inquiry_timeline=inquiry_timeline,
-            filters_applied=filters.model_dump(),
-            data_timestamp=datetime.now(),
-            total_records=total_quotes
-        )
+        return {
+            "kpis": kpis,
+            "revenue_by_status": revenue_by_status_data,
+            "monthly_trend": monthly_trend,
+            "product_revenue": product_revenue,
+            "value_distribution": value_distribution,
+            "inquiry_timeline": inquiry_timeline,
+            "filters_applied": filters.model_dump(),
+            "data_timestamp": datetime.now().isoformat(),
+            "total_records": total_quotes
+        }
     
     def get_revenue_by_status(self, filters: AnalyticsFilters) -> List[Dict[str, Any]]:
         """Get revenue breakdown by quote status"""
@@ -538,15 +560,14 @@ Finance, Customer, and Combined Insights
     def get_inquiry_timeline(self, filters: AnalyticsFilters) -> List[Dict[str, Any]]:
         """Get inquiry to quotation timeline"""
         
+        # Use Project.created_at since inquiry_date doesn't exist
         query = self.db.query(
-            CommercialQuotation.inquiry_date,
-            CommercialQuotation.quotation_date,
+            Project.created_at,
             CommercialQuotation.quotation_number
         ).join(
-            Project, CommercialQuotation.quotation_number == Project.quotation_number
+            CommercialQuotation, Project.quotation_number == CommercialQuotation.quotation_number
         ).filter(
-            CommercialQuotation.inquiry_date.isnot(None),
-            CommercialQuotation.quotation_date.isnot(None)
+            Project.created_at.isnot(None)
         )
         
         query = self.apply_date_filter(query, Project, filters)
@@ -554,16 +575,22 @@ Finance, Customer, and Combined Insights
         
         results = query.all()
         
-        timeline_data = []
+        # Group by month for timeline
+        from collections import defaultdict
+        monthly_counts = defaultdict(int)
+        
         for r in results:
-            if r.inquiry_date and r.quotation_date:
-                days_diff = (r.quotation_date - r.inquiry_date).days
-                timeline_data.append({
-                    "quotation_number": r.quotation_number,
-                    "days": days_diff,
-                    "inquiry_date": r.inquiry_date.strftime("%Y-%m-%d"),
-                    "quotation_date": r.quotation_date.strftime("%Y-%m-%d")
-                })
+            if r.created_at:
+                month_key = r.created_at.strftime("%Y-%m")
+                monthly_counts[month_key] += 1
+        
+        timeline_data = [
+            {
+                "month": month,
+                "count": count
+            }
+            for month, count in sorted(monthly_counts.items())
+        ]
         
         return timeline_data
     
