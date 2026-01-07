@@ -7,6 +7,7 @@ import NewQuotation from './pages/NewQuotation';
 import CustomerRequirements from './pages/CustomerRequirements';
 import CommercialQuote from './pages/CommercialQuote';
 import TechnicalQuote from './pages/TechnicalQuote';
+import AnalyticsDashboard from './pages/Analytics/AnalyticsDashboard';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/analytics" element={<AnalyticsDashboard />} />
         <Route path="/quotation/new" element={<NewQuotation />} />
         <Route path="/quotation/requirements/:projectId" element={<CustomerRequirements />} />
         <Route path="/quotation/commercial/:projectId" element={<CommercialQuote />} />
