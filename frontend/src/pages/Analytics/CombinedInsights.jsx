@@ -9,7 +9,7 @@ import {
 import { Download, TrendingUp, Filter } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16'];
 
 const CombinedInsights = ({ filters }) => {
   const { data, loading, error } = useCombinedInsights(filters);
@@ -25,19 +25,19 @@ const CombinedInsights = ({ filters }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
+      <div style={styles.loadingContainer}>
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <span className="ml-2 text-gray-600">Loading combined insights...</span>
+        <span style={styles.loadingText}>Loading combined insights...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <p className="text-red-600 font-medium">{error}</p>
-          <Button onClick={() => window.location.reload()} className="mt-4">
+      <div style={styles.errorContainer}>
+        <div style={styles.errorContent}>
+          <p style={styles.errorText}>{error}</p>
+          <Button onClick={() => window.location.reload()} style={styles.retryButton}>
             Retry
           </Button>
         </div>
@@ -57,49 +57,49 @@ const CombinedInsights = ({ filters }) => {
   } = data;
 
   return (
-    <div className="space-y-6">
+    <div style={styles.container}>
       {/* Export Buttons */}
-      <div className="flex justify-end gap-2">
+      <div style={styles.exportSection}>
         <Button
           variant="outline"
           onClick={() => handleExport('json')}
-          className="flex items-center gap-2"
+          style={styles.exportButton}
         >
           <Download className="w-4 h-4" />
-          Export JSON
+          <span style={styles.exportText}>Export JSON</span>
         </Button>
         <Button
           variant="outline"
           onClick={() => handleExport('csv')}
-          className="flex items-center gap-2"
+          style={styles.exportButton}
         >
           <Download className="w-4 h-4" />
-          Export CSV
+          <span style={styles.exportText}>Export CSV</span>
         </Button>
       </div>
 
       {/* Key Metrics Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Key Insights</CardTitle>
+      <Card style={styles.metricsCard}>
+        <CardHeader style={styles.cardHeader}>
+          <CardTitle style={styles.cardTitle}>Key Insights</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Avg Processing Time</p>
-              <p className="text-2xl font-bold text-blue-900">
+        <CardContent style={styles.cardContent}>
+          <div style={styles.metricsGrid}>
+            <div style={{ ...styles.metricBox, ...styles.metricBlue }}>
+              <p style={styles.metricLabel}>Avg Processing Time</p>
+              <p style={styles.metricValue}>
                 {avg_processing_time ? `${avg_processing_time.toFixed(1)} hrs` : 'N/A'}
               </p>
             </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Total Product-Customer Combos</p>
-              <p className="text-2xl font-bold text-green-900">
+            <div style={{ ...styles.metricBox, ...styles.metricGreen }}>
+              <p style={styles.metricLabel}>Total Product-Customer Combos</p>
+              <p style={styles.metricValue}>
                 {top_combinations.length}
               </p>
             </div>
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Active Products</p>
-              <p className="text-2xl font-bold text-purple-900">
+            <div style={{ ...styles.metricBox, ...styles.metricPurple }}>
+              <p style={styles.metricLabel}>Active Products</p>
+              <p style={styles.metricValue}>
                 {product_customer_matrix.products?.length || 0}
               </p>
             </div>
@@ -108,46 +108,47 @@ const CombinedInsights = ({ filters }) => {
       </Card>
 
       {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div style={styles.chartsRow}>
         {/* Quote Status Funnel */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quote Status Funnel</CardTitle>
+        <Card style={styles.chartCard}>
+          <CardHeader style={styles.cardHeader}>
+            <CardTitle style={styles.cardTitle}>Quote Status Funnel</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent style={styles.cardContent}>
+            <ResponsiveContainer width="100%" height={400}>
               <BarChart data={funnel} layout="horizontal">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="stage" type="category" width={100} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" fill="#3b82f6" name="Quote Count" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis type="number" tick={{ fontSize: 13, fill: '#374151' }} />
+                <YAxis dataKey="stage" type="category" width={120} tick={{ fontSize: 13, fill: '#374151' }} />
+                <Tooltip contentStyle={{ fontSize: '14px' }} />
+                <Legend wrapperStyle={{ fontSize: '14px', paddingTop: '10px' }} />
+                <Bar dataKey="count" fill="#3b82f6" name="Quote Count" radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* Monthly Quote Velocity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Quote Velocity</CardTitle>
+        <Card style={styles.chartCard}>
+          <CardHeader style={styles.cardHeader}>
+            <CardTitle style={styles.cardTitle}>Monthly Quote Velocity</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent style={styles.cardContent}>
+            <ResponsiveContainer width="100%" height={400}>
               <LineChart data={velocity}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" tick={{ fontSize: 13, fill: '#374151' }} />
+                <YAxis tick={{ fontSize: 13, fill: '#374151' }} />
+                <Tooltip contentStyle={{ fontSize: '14px' }} />
+                <Legend wrapperStyle={{ fontSize: '14px', paddingTop: '10px' }} />
                 <Line 
                   type="monotone" 
                   dataKey="value" 
                   stroke="#10b981" 
-                  strokeWidth={2}
+                  strokeWidth={3}
                   name="Quotes Created"
-                  dot={{ r: 4 }}
+                  dot={{ r: 5, fill: '#10b981' }}
+                  activeDot={{ r: 7 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -156,18 +157,18 @@ const CombinedInsights = ({ filters }) => {
       </div>
 
       {/* Product Mix Trend */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Product Mix Trend Over Time</CardTitle>
+      <Card style={styles.fullWidthCard}>
+        <CardHeader style={styles.cardHeader}>
+          <CardTitle style={styles.cardTitle}>Product Mix Trend Over Time</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
+        <CardContent style={styles.cardContent}>
+          <ResponsiveContainer width="100%" height={450}>
             <AreaChart data={product_mix_trend}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="period" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="period" tick={{ fontSize: 13, fill: '#374151' }} />
+              <YAxis tick={{ fontSize: 13, fill: '#374151' }} />
+              <Tooltip contentStyle={{ fontSize: '14px' }} />
+              <Legend wrapperStyle={{ fontSize: '13px', paddingTop: '10px' }} />
               {product_mix_trend.length > 0 && Object.keys(product_mix_trend[0])
                 .filter(key => key !== 'period')
                 .map((product, index) => (
@@ -188,28 +189,28 @@ const CombinedInsights = ({ filters }) => {
       </Card>
 
       {/* Top Product-Customer Combinations */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Top Product-Customer Combinations</CardTitle>
+      <Card style={styles.tableCard}>
+        <CardHeader style={styles.cardHeader}>
+          <CardTitle style={styles.cardTitle}>Top Product-Customer Combinations</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+        <CardContent style={styles.cardContent}>
+          <div style={styles.tableWrapper}>
+            <table style={styles.table}>
               <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">Customer</th>
-                  <th className="text-left p-2">Product</th>
-                  <th className="text-right p-2">Quote Count</th>
-                  <th className="text-right p-2">Revenue</th>
+                <tr style={styles.tableHeaderRow}>
+                  <th style={styles.tableHeader}>Customer</th>
+                  <th style={styles.tableHeader}>Product</th>
+                  <th style={{ ...styles.tableHeader, textAlign: 'right' }}>Quote Count</th>
+                  <th style={{ ...styles.tableHeader, textAlign: 'right' }}>Revenue</th>
                 </tr>
               </thead>
               <tbody>
                 {top_combinations.slice(0, 15).map((combo, index) => (
-                  <tr key={index} className="border-b hover:bg-gray-50">
-                    <td className="p-2 font-medium">{combo.customer}</td>
-                    <td className="p-2">{combo.product}</td>
-                    <td className="text-right p-2">{combo.quote_count}</td>
-                    <td className="text-right p-2">${combo.revenue.toLocaleString()}</td>
+                  <tr key={index} style={styles.tableRow}>
+                    <td style={styles.tableCell}>{combo.customer}</td>
+                    <td style={styles.tableCell}>{combo.product}</td>
+                    <td style={{ ...styles.tableCell, textAlign: 'right' }}>{combo.quote_count}</td>
+                    <td style={{ ...styles.tableCell, textAlign: 'right' }}>${combo.revenue.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -219,22 +220,22 @@ const CombinedInsights = ({ filters }) => {
       </Card>
 
       {/* Product × Customer Matrix Heatmap */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Product × Customer Matrix</CardTitle>
-          <p className="text-sm text-gray-600 mt-1">
+      <Card style={styles.fullWidthCard}>
+        <CardHeader style={styles.cardHeader}>
+          <CardTitle style={styles.cardTitle}>Product × Customer Matrix</CardTitle>
+          <p style={styles.cardSubtitle}>
             Shows quote count by product and customer combination
           </p>
         </CardHeader>
-        <CardContent>
+        <CardContent style={styles.cardContent}>
           {product_customer_matrix.customers && product_customer_matrix.products && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
+            <div style={styles.matrixWrapper}>
+              <table style={styles.matrixTable}>
                 <thead>
                   <tr>
-                    <th className="border p-2 bg-gray-100 sticky left-0 z-10">Customer</th>
+                    <th style={styles.matrixHeaderCell}>Customer</th>
                     {product_customer_matrix.products.map((product, index) => (
-                      <th key={index} className="border p-2 bg-gray-100 text-xs">
+                      <th key={index} style={styles.matrixHeaderCell}>
                         {product}
                       </th>
                     ))}
@@ -243,7 +244,7 @@ const CombinedInsights = ({ filters }) => {
                 <tbody>
                   {product_customer_matrix.customers.slice(0, 10).map((customer, idx) => (
                     <tr key={idx}>
-                      <td className="border p-2 font-medium bg-gray-50 sticky left-0 z-10 text-xs">
+                      <td style={styles.matrixRowHeader}>
                         {customer}
                       </td>
                       {product_customer_matrix.products.map((product, pidx) => {
@@ -253,8 +254,8 @@ const CombinedInsights = ({ filters }) => {
                         return (
                           <td
                             key={pidx}
-                            className="border p-2 text-center text-xs"
                             style={{
+                              ...styles.matrixCell,
                               backgroundColor: value > 0 
                                 ? `rgba(59, 130, 246, ${intensity / 100})`
                                 : 'white'
@@ -274,12 +275,12 @@ const CombinedInsights = ({ filters }) => {
       </Card>
 
       {/* Funnel Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Funnel Conversion Details</CardTitle>
+      <Card style={styles.fullWidthCard}>
+        <CardHeader style={styles.cardHeader}>
+          <CardTitle style={styles.cardTitle}>Funnel Conversion Details</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent style={styles.cardContent}>
+          <div style={styles.funnelContainer}>
             {funnel.map((stage, index) => {
               const nextStage = funnel[index + 1];
               const conversionRate = nextStage 
@@ -287,19 +288,19 @@ const CombinedInsights = ({ filters }) => {
                 : null;
 
               return (
-                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">{stage.stage}</h4>
-                    <p className="text-sm text-gray-600">
+                <div key={index} style={styles.funnelItem}>
+                  <div style={styles.funnelItemContent}>
+                    <h4 style={styles.funnelStageTitle}>{stage.stage}</h4>
+                    <p style={styles.funnelStageDetails}>
                       {stage.count} quotes • ${stage.value.toLocaleString()} value
                     </p>
                   </div>
                   {conversionRate && (
-                    <div className="ml-4 text-right">
-                      <p className="text-sm font-medium text-gray-900">
+                    <div style={styles.funnelConversion}>
+                      <p style={styles.funnelConversionRate}>
                         {conversionRate}%
                       </p>
-                      <p className="text-xs text-gray-600">
+                      <p style={styles.funnelConversionText}>
                         → {nextStage.stage}
                       </p>
                     </div>
@@ -312,6 +313,250 @@ const CombinedInsights = ({ filters }) => {
       </Card>
     </div>
   );
+};
+
+const styles = {
+  container: {
+    width: '100%',
+    maxHeight: 'calc(100vh - 280px)',
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    padding: '0 8px',
+  },
+  loadingContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '400px',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  loadingText: {
+    color: '#6b7280',
+    fontSize: '14px',
+  },
+  errorContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '400px',
+  },
+  errorContent: {
+    textAlign: 'center',
+  },
+  errorText: {
+    color: '#dc2626',
+    fontWeight: '500',
+    marginBottom: '16px',
+  },
+  retryButton: {
+    marginTop: '16px',
+  },
+  exportSection: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '10px',
+    marginBottom: '20px',
+  },
+  exportButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '10px 18px',
+    fontSize: '14px',
+  },
+  exportText: {
+    marginLeft: '4px',
+  },
+  metricsCard: {
+    marginBottom: '28px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+    borderRadius: '10px',
+    border: '1px solid #e5e7eb',
+  },
+  cardHeader: {
+    padding: '20px',
+    borderBottom: '2px solid #e5e7eb',
+    backgroundColor: '#f9fafb',
+  },
+  cardTitle: {
+    fontSize: '17px',
+    fontWeight: '600',
+    color: '#111827',
+  },
+  cardSubtitle: {
+    fontSize: '14px',
+    color: '#6b7280',
+    marginTop: '6px',
+  },
+  cardContent: {
+    padding: '20px',
+  },
+  metricsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: '20px',
+  },
+  metricBox: {
+    padding: '20px',
+    borderRadius: '10px',
+  },
+  metricBlue: {
+    backgroundColor: '#eff6ff',
+  },
+  metricGreen: {
+    backgroundColor: '#f0fdf4',
+  },
+  metricPurple: {
+    backgroundColor: '#faf5ff',
+  },
+  metricLabel: {
+    fontSize: '14px',
+    color: '#6b7280',
+    marginBottom: '10px',
+  },
+  metricValue: {
+    fontSize: '28px',
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  chartsRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(600px, 1fr))',
+    gap: '24px',
+    marginBottom: '28px',
+  },
+  chartCard: {
+    boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+    borderRadius: '10px',
+    border: '1px solid #e5e7eb',
+  },
+  fullWidthCard: {
+    marginBottom: '28px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+    borderRadius: '10px',
+    border: '1px solid #e5e7eb',
+  },
+  tableCard: {
+    marginBottom: '28px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+    borderRadius: '10px',
+    border: '1px solid #e5e7eb',
+  },
+  tableWrapper: {
+    overflowX: 'auto',
+    maxHeight: '450px',
+    overflowY: 'auto',
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    fontSize: '14px',
+  },
+  tableHeaderRow: {
+    backgroundColor: '#f9fafb',
+    position: 'sticky',
+    top: 0,
+    zIndex: 1,
+  },
+  tableHeader: {
+    padding: '14px',
+    textAlign: 'left',
+    fontWeight: '600',
+    color: '#374151',
+    borderBottom: '2px solid #e5e7eb',
+    fontSize: '14px',
+  },
+  tableRow: {
+    borderBottom: '1px solid #e5e7eb',
+  },
+  tableCell: {
+    padding: '14px',
+    color: '#1f2937',
+    fontSize: '14px',
+  },
+  matrixWrapper: {
+    overflowX: 'auto',
+    maxHeight: '550px',
+    overflowY: 'auto',
+  },
+  matrixTable: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    fontSize: '13px',
+  },
+  matrixHeaderCell: {
+    border: '1px solid #e5e7eb',
+    padding: '12px',
+    backgroundColor: '#f9fafb',
+    position: 'sticky',
+    top: 0,
+    zIndex: 2,
+    fontSize: '13px',
+    fontWeight: '600',
+    color: '#374151',
+  },
+  matrixRowHeader: {
+    border: '1px solid #e5e7eb',
+    padding: '12px',
+    fontWeight: '500',
+    backgroundColor: '#f9fafb',
+    position: 'sticky',
+    left: 0,
+    zIndex: 1,
+    fontSize: '13px',
+  },
+  matrixCell: {
+    border: '1px solid #e5e7eb',
+    padding: '12px',
+    textAlign: 'center',
+    fontSize: '13px',
+  },
+  funnelContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  funnelItem: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '20px',
+    backgroundColor: '#f9fafb',
+    borderRadius: '10px',
+    border: '1px solid #e5e7eb',
+  },
+  funnelItemContent: {
+    flex: 1,
+  },
+  funnelStageTitle: {
+    fontWeight: '600',
+    color: '#111827',
+    fontSize: '16px',
+    margin: 0,
+    marginBottom: '6px',
+  },
+  funnelStageDetails: {
+    fontSize: '14px',
+    color: '#6b7280',
+    margin: 0,
+  },
+  funnelConversion: {
+    marginLeft: '20px',
+    textAlign: 'right',
+  },
+  funnelConversionRate: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#111827',
+    margin: 0,
+    marginBottom: '4px',
+  },
+  funnelConversionText: {
+    fontSize: '13px',
+    color: '#6b7280',
+    margin: 0,
+  },
 };
 
 export default CombinedInsights;
