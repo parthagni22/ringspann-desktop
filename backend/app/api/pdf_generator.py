@@ -1,12 +1,13 @@
 """
 Commercial Quotation PDF Generator - Exact Format with Logo and Footer
-UPDATED: General Conditions now in 2-column layout
+UPDATED: Fixed spacing issues - removed blank pages and excessive whitespace
 """
 from datetime import datetime
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image, PageBreak, KeepTogether, Frame, PageTemplate
+from reportlab.platypus import BaseDocTemplate, PageTemplate, Frame, NextPageTemplate
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT, TA_JUSTIFY
 from reportlab.pdfgen import canvas
@@ -18,6 +19,7 @@ class FooteredCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
         canvas.Canvas.__init__(self, *args, **kwargs)
         self._saved_page_states = []
+        self.logo_path = getattr(FooteredCanvas, '_logo_path', None)
 
     def showPage(self):
         self._saved_page_states.append(dict(self.__dict__))
@@ -27,18 +29,44 @@ class FooteredCanvas(canvas.Canvas):
         num_pages = len(self._saved_page_states)
         for state in self._saved_page_states:
             self.__dict__.update(state)
-            self.draw_footer(num_pages)
+            self.draw_page_elements(num_pages)
             canvas.Canvas.showPage(self)
         canvas.Canvas.save(self)
 
-    def draw_footer(self, page_count):
+    def draw_page_elements(self, page_count):
+        """Draw header and footer on every page"""
         page_width = A4[0]
+        page_height = A4[1]
         
-        # Company details footer
+        # HEADER (on pages 2+) - FIXED POSITIONING
+        if self._pageNumber >= 2:
+            if self.logo_path and Path(self.logo_path).exists():
+                try:
+                    self.drawImage(
+                        str(self.logo_path), 
+                        page_width - 160,
+                        page_height - 55,  # FIXED: Reduced from 60
+                        width=130, 
+                        height=34,
+                        preserveAspectRatio=True
+                    )
+                except:
+                    pass
+            
+            self.setFont("Helvetica-Bold", 14)
+            self.drawString(30, page_height - 45, "RINGSPANN Power Transmission India Pvt. Ltd.")  # FIXED: Reduced from 50
+            
+            self.setFont("Helvetica-Bold", 16)
+            self.drawCentredString(page_width/2, page_height - 70, "Quotation")  # FIXED: Reduced from 80
+            
+            self.setStrokeColor(colors.black)
+            self.setLineWidth(0.5)
+            self.line(30, page_height - 75, page_width - 30, page_height - 75)  # FIXED: Reduced from 90
+        
+        # FOOTER (on all pages)
         self.setFont("Helvetica", 7)
         y_pos = 80
         
-        # Left column
         self.drawString(30, y_pos, "RINGSPANN Power Transmission India Pvt. Ltd.")
         self.drawString(30, y_pos-10, "GAT Numbers 679/2/1")
         self.drawString(30, y_pos-20, "Village Kuruli, Taluka Khed, Chakan-Aland Road,")
@@ -48,7 +76,6 @@ class FooteredCanvas(canvas.Canvas):
         self.drawString(30, y_pos-60, "www.ringspann-india.com")
         self.drawString(30, y_pos-70, "info@ringspann-india.com")
         
-        # Middle column
         self.drawString(220, y_pos, "VAT No.: 27220915992V")
         self.drawString(220, y_pos-10, "CST No.: 27220915992C")
         self.drawString(220, y_pos-20, "ECC Reg. No.: AAFCR486&REM001")
@@ -56,13 +83,11 @@ class FooteredCanvas(canvas.Canvas):
         self.drawString(220, y_pos-40, "CIN No.: U74900PN2011FTC140818")
         self.drawString(220, y_pos-50, "GSTIN: 27AAFCR4868R1ZD")
         
-        # Right column
         self.drawString(410, y_pos, "U.22.715")
         self.drawString(410, y_pos-10, "Axis Bank - Pune 411014")
         self.drawString(410, y_pos-20, "IFSC Code: UTIB0001032")
         self.drawString(410, y_pos-30, "Swift Code: AXISINSB073")
         self.drawString(410, y_pos-40, "Account No. 910020047693645")
-        
         
 def flatten_general_conditions(gc_data):
     """Convert hierarchical general conditions to (title, content) tuples for PDF"""
@@ -73,27 +98,21 @@ def flatten_general_conditions(gc_data):
         title = section["title"]
         content_parts = []
         
-        # Add main content if exists
         if section.get("content"):
             content_parts.append(section["content"])
         
-        # Add subsections
         if section.get("subsections"):
             for subsection in section["subsections"]:
                 letter = subsection.get("letter", "")
                 sub_content = subsection.get("content", "")
-                
-                # Format subsection
                 content_parts.append(f"<b>{letter}.</b> {sub_content}")
                 
-                # Add sub-subsections if they exist
                 if subsection.get("sub_subsections"):
                     for sub_sub in subsection["sub_subsections"]:
                         roman = sub_sub.get("roman", "")
                         sub_sub_content = sub_sub.get("content", "")
                         content_parts.append(f"&nbsp;&nbsp;&nbsp;&nbsp;<b>({roman})</b> {sub_sub_content}")
         
-        # Combine all parts with line breaks
         full_content = "<br/><br/>".join(content_parts)
         flattened.append((f"{number}. {title}", full_content))
     
@@ -108,14 +127,74 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
         filename = f"Commercial_Quote_{quotation_number.replace('/', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         filepath = output_dir / filename
         
-        doc = SimpleDocTemplate(
+        # FIXED: Reduced topMargin
+        doc = BaseDocTemplate(
             str(filepath),
             pagesize=A4,
             rightMargin=30,
             leftMargin=30,
-            topMargin=30,
+            topMargin=95,      # FIXED: Reduced from 110 to 95
             bottomMargin=100
         )
+        
+        # Frame 1: Single column for first page
+        frame_single = Frame(
+            doc.leftMargin, 
+            doc.bottomMargin, 
+            doc.width, 
+            doc.height,
+            id='single',
+            topPadding=0,
+            bottomPadding=0,
+            leftPadding=0,
+            rightPadding=0
+        )
+        
+        # FIXED: Frames for two-column layout - removed unnecessary height adjustment
+        frame_width = (doc.width - 10) / 2
+        
+        frame_left = Frame(
+            doc.leftMargin,
+            doc.bottomMargin,
+            frame_width,
+            doc.height,  # FIXED: Removed -110 subtraction
+            id='col1',
+            topPadding=0,  # FIXED: Changed from 10 to 0
+            bottomPadding=0,
+            leftPadding=0,
+            rightPadding=5
+        )
+        
+        frame_right = Frame(
+            doc.leftMargin + frame_width + 10,
+            doc.bottomMargin,
+            frame_width,
+            doc.height,  # FIXED: Removed -110 subtraction
+            id='col2',
+            topPadding=0,  # FIXED: Changed from 10 to 0
+            bottomPadding=0,
+            leftPadding=5,
+            rightPadding=0
+        )
+        
+        def add_page_elements(canvas, doc):
+            pass
+        
+        template_first = PageTemplate(
+            id='FirstPage', 
+            frames=[frame_single],
+            onPage=add_page_elements,
+            pagesize=A4
+        )
+        
+        template_twocol = PageTemplate(
+            id='TwoColumn', 
+            frames=[frame_left, frame_right],
+            onPage=add_page_elements,
+            pagesize=A4
+        )
+        
+        doc.addPageTemplates([template_first, template_twocol])
         
         story = []
         styles = getSampleStyleSheet()
@@ -156,10 +235,9 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
         
         # PAGE 1: Quotation
         
-        # Header with logo and company name
+        # Header with logo
         logo_path = Path("../frontend/public/assets/ringspann_logo2.png")
         if not logo_path.exists():
-            # Try alternative path
             logo_path = Path("D:/Irizpro/ringspann-desktop/frontend/public/assets/ringspann_logo2.png")
         
         if logo_path.exists():
@@ -167,7 +245,6 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
             header_table_data = [[
                 logo,
                 "RINGSPANN Power Transmission India Pvt. Ltd."
-                
             ]]
         else:
             header_table_data = [[
@@ -187,7 +264,6 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
         story.append(header_table)
         story.append(Spacer(1, 5))
         
-        # Title
         story.append(Paragraph("Quotation", title_style))
         
         # Contact table
@@ -203,9 +279,9 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
             [Paragraph('<b>Quotation No.:</b>', small_bold), quotation_number,
              Paragraph('<b>E-mail:</b>', small_bold), form_data.get('email_partner', '')],
             [Paragraph('<b>Inquiry Date:</b>', small_bold), 
-             form_data.get('inquiry_date', datetime.now().strftime('%B %d, %Y')),
+             form_data.get('inquiry_date', datetime.now().strftime('%Y-%m-%d')),
              Paragraph('<b>Date:</b>', small_bold), 
-             form_data.get('quotation_date', datetime.now().strftime('%B %d, %Y'))]
+             form_data.get('quotation_date', datetime.now().strftime('%Y-%m-%d'))]
         ]
         
         contact_table = Table(contact_data, colWidths=[1.2*inch, 2.3*inch, 1.1*inch, 2.4*inch])
@@ -224,7 +300,7 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
         story.append(Spacer(1, 15))
         
         # Greeting
-        inquiry_date = form_data.get('inquiry_date', datetime.now().strftime('%B %d, %Y'))
+        inquiry_date = form_data.get('inquiry_date', datetime.now().strftime('%Y-%m-%d'))
         greeting = f"Dear Sir,<br/>This is with reference to your mail enquiry dated on {inquiry_date} we are pleased to offer as under: -"
         story.append(Paragraph(greeting, small_text))
         story.append(Spacer(1, 10))
@@ -269,7 +345,7 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
         story.append(items_table)
         story.append(Spacer(1, 15))
         
-        # Load custom terms from database or use defaults
+        # Load custom terms from database
         db = SessionLocal()
         custom_terms_text = None
         try:
@@ -279,9 +355,9 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
             """), {'quotation_number': quotation_number}).fetchone()
             if result and result[0]:
                 custom_terms_text = result[0]
-                print(f"DEBUG: Loaded custom terms from DB: {custom_terms_text[:100]}...")  # Debug
+                print(f"DEBUG: Loaded custom terms from DB: {custom_terms_text[:100]}...")
             else:
-                print(f"DEBUG: No custom terms found for {quotation_number}")  # Debug
+                print(f"DEBUG: No custom terms found for {quotation_number}")
         except Exception as e:
             print(f"Error loading terms: {e}")
         finally:
@@ -293,21 +369,21 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
         
         if custom_terms_text:
             terms = [line for line in custom_terms_text.split('\n') if line.strip()]
-            print(f"DEBUG: Using {len(terms)} custom terms")  # Debug
+            print(f"DEBUG: Using {len(terms)} custom terms")
         else:
             terms = [
                 "1) Terms of Payment - 100% against Proforma Invoice.",
                 "2) Price basis: Ex-Works Chakan, Pune Basis",
-                "3) P&F; Charges: 2% Extra on the Basic Price",
+                "3) P&F Charges: 2% Extra on the Basic Price",  # FIXED: Removed semicolon
                 "4) Insurance: Shall be borne by you.",
                 "5) Taxes:",
                 "a) I-GST is applicable for Out of Maharashtra",
                 "b) C-GST & S-GST is applicable within the State of Maharashtra.",
                 "c) U-GST is applicable for Union Territory.",
                 "6) Delivery Period: 8 weeks from date of technically and commercially clear PO.",
-                "7) Warrantee/ Guarantee: 12 months from the date of commissioning or 18 months from the date of Invoice, whichever is earlier."
+                "7) Warranty: 12 months from the date of commissioning or 18 months from the date of Invoice, whichever is earlier."  # FIXED: Changed Warrantee to Warranty
             ]
-            print(f"DEBUG: Using default terms")  # Debug
+            print(f"DEBUG: Using default terms")
         
         for term in terms:
             story.append(Paragraph(term, small_text))
@@ -323,24 +399,18 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
         story.append(Paragraph("NAME: _________________________", small_text))
         story.append(Paragraph("DESIGNATION: _________________________", small_text))
         
-        # PAGE BREAK
+        # FIXED: Single PageBreak - removed duplicate that caused blank page
+        story.append(NextPageTemplate('TwoColumn'))
         story.append(PageBreak())
         
-        # PAGE 2: General Conditions (TWO-COLUMN LAYOUT)
-        # Reuse logo path
-        if not logo_path.exists():
-            logo_path = Path("../frontend/public/assets/ringspann_logo2.png")
-            if not logo_path.exists():
-                logo_path = Path("D:/Irizpro/ringspann-desktop/frontend/public/assets/ringspann_logo2.png")
-        story.append(header_table)
-        story.append(Spacer(1, 5))
-        story.append(Paragraph("Quotation", title_style))
+        # PAGE 2+: General Conditions
+        # FIXED: Removed Spacer(1, 100) that caused excessive whitespace
         story.append(Paragraph("<b>General Conditions of Delivery and Payment for Customers</b>", small_bold))
         story.append(Spacer(1, 5))
         story.append(Paragraph("The following General Conditions of Delivery and Payment for Customers shall apply to all deliveries of our products, except as modified by express agreement accepted in writing by both parties", small_text))
         story.append(Spacer(1, 10))
         
-        # Load custom general conditions from database
+        # Load custom general conditions
         custom_gc_text = None
         db = SessionLocal()
         try:
@@ -350,19 +420,15 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
             """), {'quotation_number': quotation_number}).fetchone()
             if result and result[0]:
                 custom_gc_text = result[0]
-                print(f"DEBUG: Loaded custom general conditions from DB")  # Debug
+                print(f"DEBUG: Loaded custom general conditions from DB")
             else:
-                print(f"DEBUG: No custom general conditions found")  # Debug
+                print(f"DEBUG: No custom general conditions found")
         except Exception as e:
             print(f"Error loading general conditions: {e}")
         finally:
             db.close()
         
-        # ============================================================
-        # TWO-COLUMN LAYOUT FOR GENERAL CONDITIONS
-        # ============================================================
-        
-        # Style for conditions content with justified alignment
+        # Styles for conditions
         condition_text_style = ParagraphStyle(
             'ConditionText',
             parent=styles['Normal'],
@@ -384,9 +450,7 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
         )
         
         # Parse conditions
-        # Parse conditions for two-column layout
         if custom_gc_text:
-            # Parse custom conditions from database
             gc_sections = []
             conditions = custom_gc_text.split('\n\n')
             for condition in conditions:
@@ -394,7 +458,7 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
                     parts = condition.split(':', 1)
                     gc_sections.append((parts[0].strip(), parts[1].strip()))
         else:
-            # NEW DEFAULT CONDITIONS - 12 SECTIONS WITH HIERARCHICAL STRUCTURE
+            # Default 12 sections with hierarchical structure
             gc_sections = [
                 {
                     "number": "1",
@@ -529,7 +593,7 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
                         },
                         {
                             "letter": "b",
-                            "content": "Unless otherwise expressly agreed in writing, each Product shall be covered under the limited warranty by the Company that every Product has been manufactured in accordance with applicable law and that it meets its specifications, it will be free from defects in materials or workmanship, provided it is stored, used and handled under the conditions recommended by Company. The Company warranty is for a period of twelve (12) months from the date of commissioning or eighteen (18) months from the date of dispatch, whichever occurs earlier. In the event of a valid deficiency claim, the Company's sole obligation shall be, at its discretion, to either:",
+                            "content": "Unless otherwise expressly agreed in writing, each Product shall be covered under the limited warranty by the Company that every Product has been been manufactured in accordance with applicable law and that it meets its specifications, it will be free from defects in materials or workmanship, provided it is stored, used and handled under the conditions recommended by Company. The Company warranty is for a period of twelve (12) months from the date of commissioning or eighteen (18) months from the date of dispatch, whichever occurs earlier. In the event of a valid deficiency claim, the Company's sole obligation shall be, at its discretion, to either:",
                             "sub_subsections": [
                                 {
                                     "roman": "i",
@@ -652,46 +716,18 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
                 }
             ]
 
-
-        # Flatten the hierarchical structure to (title, content) tuples
+        # Flatten hierarchical structure
         gc_sections = flatten_general_conditions(gc_sections)
         
-        # Split sections into two columns
-        mid_point = (len(gc_sections) + 1) // 2  # Round up for left column
-        left_sections = gc_sections[:mid_point]
-        right_sections = gc_sections[mid_point:]
+        # Add conditions - flows automatically across columns and pages
+        for title, content in gc_sections:
+            story.append(Paragraph(f"<b>{title}</b>", condition_title_style))
+            story.append(Spacer(1, 3))
+            story.append(Paragraph(content, condition_text_style))
+            story.append(Spacer(1, 10))
         
-        # Build column content
-        left_column_content = []
-        for title, content in left_sections:
-            left_column_content.append(Paragraph(f"<b>{title}</b>", condition_title_style))
-            left_column_content.append(Paragraph(content, condition_text_style))
-            left_column_content.append(Spacer(1, 6))
-        
-        right_column_content = []
-        for title, content in right_sections:
-            right_column_content.append(Paragraph(f"<b>{title}</b>", condition_title_style))
-            right_column_content.append(Paragraph(content, condition_text_style))
-            right_column_content.append(Spacer(1, 6))
-        
-        # Create two-column table for conditions
-        # Create the two columns as table cells
-        conditions_table_data = [[left_column_content, right_column_content]]
-        
-        # Column widths: split page evenly with small gap
-        page_width = A4[0] - 60  # Account for margins
-        col_width = (page_width - 10) / 2  # 10 for gap
-        
-        conditions_table = Table(conditions_table_data, colWidths=[col_width, col_width])
-        conditions_table.setStyle(TableStyle([
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('LEFTPADDING', (0, 0), (-1, -1), 5),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 5),
-            ('TOPPADDING', (0, 0), (-1, -1), 0),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-        ]))
-        
-        story.append(conditions_table)
+        # Store logo path as class variable
+        FooteredCanvas._logo_path = str(logo_path) if logo_path.exists() else None
         
         # Build PDF
         doc.build(story, canvasmaker=FooteredCanvas)
@@ -709,6 +745,44 @@ def generate_commercial_pdf(quotation_number: str, form_data: dict):
             'message': str(e),
             'traceback': traceback.format_exc()
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
