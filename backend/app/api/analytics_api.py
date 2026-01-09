@@ -2,6 +2,7 @@
 Analytics API endpoints for Eel Desktop Application
 Maps analytics routes to Eel-exposed functions
 """
+#from django import db
 import eel
 from typing import Optional
 from datetime import datetime
@@ -30,7 +31,10 @@ def get_product_analytics(
 ):
     """Get complete product analytics"""
     try:
-        db = SessionLocal()
+        db = SessionLocal()  # ← ADD THIS
+        
+        from app.services.product_analytics_service import get_product_analytics_updated
+        
         filters = AnalyticsFilters(
             date_filter=date_filter,
             start_date=start_date,
@@ -40,15 +44,13 @@ def get_product_analytics(
             product_type=product_type
         )
         
-        service = AnalyticsService(db)
-        result = service.get_product_analytics(filters)
+        result = get_product_analytics_updated(db, filters)
         
         db.close()
         
-        # Convert to dict for JSON serialization
         return {
             "success": True,
-            "data": result.model_dump()
+            "data": result
         }
     except Exception as e:
         logger.error(f"Error in get_product_analytics: {e}")
@@ -56,7 +58,6 @@ def get_product_analytics(
             "success": False,
             "error": str(e)
         }
-
 
 @eel.expose
 def get_quotes_by_product(

@@ -6,6 +6,7 @@ import ProductAnalytics from './ProductAnalytics';
 import FinanceAnalytics from './FinanceAnalytics';
 import CustomerAnalytics from './CustomerAnalytics';
 import CombinedInsights from './CombinedInsights';
+import { useNavigate } from 'react-router-dom';
 import { BarChart3, DollarSign, Users, TrendingUp, ArrowLeft } from 'lucide-react';
 
 const AnalyticsDashboard = () => {
@@ -43,7 +44,7 @@ const AnalyticsDashboard = () => {
   });
 
   const handleBack = () => {
-    window.location.href = '/';
+    navigate('/dashboard');
   };
 
   return (

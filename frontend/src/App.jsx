@@ -17,6 +17,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/analytics" element={<AnalyticsDashboard />} />
+        
         <Route path="/quotation/new" element={<NewQuotation />} />
         <Route path="/quotation/requirements/:projectId" element={<CustomerRequirements />} />
         <Route path="/quotation/commercial/:projectId" element={<CommercialQuote />} />

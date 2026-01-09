@@ -139,20 +139,14 @@ const ProductAnalytics = ({ filters, onFilterChange }) => {
             <div style={styles.chartWithLegend}>
               <div style={styles.chartWrapper}>
                 <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={product_quotes} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis type="number" tick={{ fontSize: 13, fill: '#374151' }} />
-                    <YAxis 
-                      dataKey="product_type" 
-                      type="category" 
-                      width={0}
-                      tick={false}
-                    />
-                    <Tooltip 
-                      contentStyle={{ fontSize: '14px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                      cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
-                    />
-                    <Bar dataKey="quote_count" fill="#3b82f6" name="Quote Count" radius={[0, 6, 6, 0]} />
+                  
+                  <BarChart data={product_quotes || []} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="product_type" type="category" width={150} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="quote_count" fill="#3b82f6" name="Quote Count" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -179,50 +173,28 @@ const ProductAnalytics = ({ filters, onFilterChange }) => {
             <CardTitle style={styles.cardTitle}>Revenue Contribution by Product (Won Status)</CardTitle>
           </CardHeader>
           <CardContent style={styles.cardContent}>
-            {revenue_contribution.length > 0 ? (
-              <div style={styles.chartWithLegend}>
-                <div style={styles.pieChartWrapper}>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <PieChart>
-                      <Pie
-                        data={revenue_contribution}
-                        dataKey="revenue"
-                        nameKey="product_type"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        label={renderCustomLabel}
-                        labelLine={false}
-                      >
-                        {revenue_contribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        formatter={(value) => `$${value.toLocaleString()}`}
-                        contentStyle={{ fontSize: '14px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                
-                <div style={styles.productLegend}>
-                  <div style={styles.legendTitle}>Revenue (Won)</div>
-                  <div style={styles.legendList}>
-                    {revenue_contribution.map((item, index) => (
-                      <div key={index} style={styles.legendItem}>
-                        <div style={{ ...styles.legendColor, backgroundColor: COLORS[index % COLORS.length] }}></div>
-                        <span style={styles.legendText}>{item.product_type}</span>
-                        <span style={styles.legendValue}>${item.revenue.toLocaleString()}</span>
-                      </div>
+          
+            
+            {revenue_contribution && revenue_contribution.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={revenue_contribution}
+                    dataKey="revenue"
+                    nameKey="product_type"
+                    cx="50%"
+                    cy="50%"
+                    label={({ percentage }) => `${percentage.toFixed(1)}%`}
+                  >
+                    {revenue_contribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
-                  </div>
-                </div>
-              </div>
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
             ) : (
-              <div style={styles.noDataMessage}>
-                <p>No Won quotes in selected filters</p>
-              </div>
+              <div>No Won quotes to display</div>
             )}
           </CardContent>
         </Card>
