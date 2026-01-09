@@ -18,6 +18,7 @@ const AnalyticsDashboard = () => {
     endDate: null,
     quoteStatus: 'all',
     productType: 'all',
+    customer: 'all',
   });
 
   const [financeFilters, setFinanceFilters] = useState({

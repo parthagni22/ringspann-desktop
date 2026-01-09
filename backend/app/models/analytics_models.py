@@ -17,7 +17,7 @@ class AnalyticsFilters(BaseModel):
     start_date: Optional[str] = Field(None, description="YYYY-MM-DD")
     end_date: Optional[str] = Field(None, description="YYYY-MM-DD")
     quote_status: Optional[str] = Field("all", description="all | Budgetary | Active | Lost | Won")
-    product_type: Optional[str] = Field("all", description="all | product type")
+    product_type: Optional[str] = "all"   #Optional[str] = Field("all", description="all | product type")
     customer: Optional[str] = Field("all", description="all | customer name")
 
 

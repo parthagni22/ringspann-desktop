@@ -21,7 +21,8 @@ export const useAnalyticsData = (eelFunction, filters, dependencies = []) => {
         filters.startDate || null,
         filters.endDate || null,
         filters.quoteStatus || 'all',
-        filters.customer || 'all'
+        filters.customer || 'all',
+        filters.productType || 'all'
       )();
 
       if (result && result.success) {
@@ -41,7 +42,42 @@ export const useAnalyticsData = (eelFunction, filters, dependencies = []) => {
 };
 
 export const useProductAnalytics = (filters) => {
-  return useAnalyticsData(eel.get_product_analytics, filters);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchData();
+  }, [JSON.stringify(filters)]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await eel.get_product_analytics(
+        filters.dateFilter || 'all',
+        filters.startDate || null,
+        filters.endDate || null,
+        filters.quoteStatus || 'all',
+        filters.customer || 'all',
+        filters.productType || 'all'  // ADD THIS
+      )();
+
+      if (result && result.success) {
+        setData(result.data);
+      } else {
+        setError(result?.error || 'Failed to fetch data');
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      setError('Failed to fetch data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { data, loading, error, refetch: fetchData };
 };
 
 export const useFinanceAnalytics = (filters) => {

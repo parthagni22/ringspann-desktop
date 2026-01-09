@@ -25,7 +25,8 @@ def get_product_analytics(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     quote_status: str = "all",
-    customer: str = "all"
+    customer: str = "all",
+    product_type: str = "all"
 ):
     """Get complete product analytics"""
     try:
@@ -35,7 +36,8 @@ def get_product_analytics(
             start_date=start_date,
             end_date=end_date,
             quote_status=quote_status,
-            customer=customer
+            customer=customer,
+            product_type=product_type
         )
         
         service = AnalyticsService(db)
@@ -434,7 +436,7 @@ def get_customers_for_analytics():
     """Get all unique customers for filter dropdown"""
     try:
         db = SessionLocal()
-        from app.models import Project
+        from app.models.project import Project
         
         customers = db.query(Project.customer_name).distinct().all()
         customer_list = [{"customer_name": c[0]} for c in customers if c[0]]
@@ -446,7 +448,7 @@ def get_customers_for_analytics():
             "data": customer_list
         }
     except Exception as e:
-        logger.error(f"Error in get_all_customers: {e}")
+        logger.error(f"Error in get_customers_for_analytics: {e}")
         return {
             "success": False,
             "error": str(e)
