@@ -56,3 +56,9 @@ backend/fix_technical_quotations_column.py
 backend/fix_timestamps.py
 backend/migrate_add_quote_status.py
 backend/migrate_fix.py
+
+
+
+
+#claude
+claude.md

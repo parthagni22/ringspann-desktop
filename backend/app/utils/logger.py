@@ -26,11 +26,12 @@ def setup_logger():
     )
     console_handler.setFormatter(console_format)
     
-    # File handler
+    # File handler with UTF-8 encoding
     file_handler = RotatingFileHandler(
         LOG_FILE,
         maxBytes=10*1024*1024,  # 10MB
-        backupCount=5
+        backupCount=5,
+        encoding='utf-8'
     )
     file_handler.setLevel(LOG_LEVEL)
     file_format = logging.Formatter(
