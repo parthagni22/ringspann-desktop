@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter  as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/Dashboard';
@@ -8,6 +8,7 @@ import CustomerRequirements from './pages/CustomerRequirements';
 import CommercialQuote from './pages/CommercialQuote';
 import TechnicalQuote from './pages/TechnicalQuote';
 import AnalyticsDashboard from './pages/Analytics/AnalyticsDashboard';
+
 
 function App() {
   return (
