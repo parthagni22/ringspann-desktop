@@ -10,8 +10,9 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart3, DollarSign, Users, TrendingUp, ArrowLeft } from 'lucide-react';
 
 const AnalyticsDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('product');
-  
+
   // Separate filter states for each tab
   const [productFilters, setProductFilters] = useState({
     dateFilter: 'all',
