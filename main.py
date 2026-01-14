@@ -25,7 +25,7 @@ def start_app():
         
         # Set frontend path
         if getattr(sys, 'frozen', False):
-            frontend_path = os.path.join(base_path, 'web')
+            frontend_path = os.path.join(base_path, '_internal', 'web')
         else:
             frontend_path = os.path.join(base_path, 'frontend', 'dist')
         

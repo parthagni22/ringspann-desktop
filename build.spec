@@ -7,7 +7,9 @@ a = Analysis(
     pathex=['backend'],  # Add backend to search path
     binaries=[],
     datas=[
-        ('backend/app', 'backend/app'),  # Copy backend/app specifically
+        ('backend/app', 'backend/app'),  # Copy backend/app
+        ('frontend/dist', 'web'),  # Copy built frontend to 'web' directory
+        ('backend/venv/Lib/site-packages/eel/eel.js', 'web'),  # Copy eel.js to web directory
     ],
     hiddenimports=['sqlalchemy', 'eel', 'bottle', 'bcrypt._bcrypt', 'logging'],
     hookspath=[],
