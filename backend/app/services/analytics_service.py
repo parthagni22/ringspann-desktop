@@ -1048,53 +1048,159 @@ Combined Insights and Export functionality
     # ========================================================================
     
     def export_analytics_data(self, view: str, format: str, filters: AnalyticsFilters) -> Dict[str, Any]:
-        """Export analytics data"""
-        
-        if view == "product":
-            data = self.get_product_analytics(filters)
-        elif view == "finance":
-            data = self.get_finance_analytics(filters)
-        elif view == "customer":
-            data = self.get_customer_analytics(filters)
-        elif view == "combined":
-            data = self.get_combined_insights(filters)
-        else:
-            return {"error": "Invalid view type"}
-        
-        if format == "json":
-            return {
-                "success": True,
-                "data": data.dict() if hasattr(data, 'dict') else data,
-                "format": "json",
-                "filename": f"{view}_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-                "generated_at": datetime.now()
-            }
-        
-        elif format == "csv":
+        """Export analytics data to CSV file"""
+        import csv
+        from app.config import EXPORT_DIR
+
+        # Only support CSV format
+        if format != "csv":
+            return {"success": False, "error": "Only CSV export is supported"}
+
+        try:
+            # Get the analytics data
+            if view == "product":
+                data = self.get_product_analytics(filters)
+            elif view == "finance":
+                data = self.get_finance_analytics(filters)
+            elif view == "customer":
+                data = self.get_customer_analytics(filters)
+            elif view == "combined":
+                data = self.get_combined_insights(filters)
+            else:
+                return {"success": False, "error": "Invalid view type"}
+
             # Convert to CSV-friendly format
             csv_data = self._convert_to_csv(data, view)
+
+            if not csv_data or len(csv_data) == 0:
+                return {"success": False, "error": "No data available to export"}
+
+            # Generate filename with timestamp
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{view}_analytics_{timestamp}.csv"
+            filepath = EXPORT_DIR / filename
+
+            # Write CSV file
+            with open(filepath, 'w', newline='', encoding='utf-8') as csvfile:
+                if isinstance(csv_data, list) and len(csv_data) > 0:
+                    fieldnames = csv_data[0].keys()
+                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    writer.writeheader()
+                    writer.writerows(csv_data)
+
             return {
                 "success": True,
-                "data": csv_data,
-                "format": "csv",
-                "filename": f"{view}_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                "generated_at": datetime.now()
+                "message": f"Data exported successfully to {filename}",
+                "filename": filename,
+                "filepath": str(filepath),
+                "generated_at": datetime.now().isoformat()
             }
-        
-        return {"error": "Invalid format"}
-    
+
+        except Exception as e:
+            return {"success": False, "error": f"Export failed: {str(e)}"}
+
     def _convert_to_csv(self, data: Any, view: str) -> List[Dict[str, Any]]:
         """Convert analytics data to CSV-friendly format"""
-        
-        # This is a simplified version - can be expanded based on specific needs
-        if view == "product":
-            return data.quote_distribution
-        elif view == "finance":
-            return data.revenue_by_status
-        elif view == "customer":
-            return data.top_customers_by_revenue
-        
-        return []
+
+        try:
+            # Handle both dict and object data
+            def get_data_field(data_obj, field_name):
+                """Get field from either dict or object"""
+                if isinstance(data_obj, dict):
+                    return data_obj.get(field_name)
+                else:
+                    return getattr(data_obj, field_name, None)
+
+            if view == "product":
+                # Export product quotes with comprehensive data
+                quote_dist = get_data_field(data, 'quote_distribution')
+                if quote_dist:
+                    csv_rows = []
+                    for item in quote_dist:
+                        # Convert Pydantic model to dict if needed
+                        if hasattr(item, 'dict'):
+                            item_dict = item.dict()
+                        elif hasattr(item, 'model_dump'):
+                            item_dict = item.model_dump()
+                        else:
+                            item_dict = item
+
+                        csv_rows.append({
+                            'Product Type': item_dict.get('product_type', 'N/A'),
+                            'Quote Count': item_dict.get('quote_count', 0),
+                            'Total Revenue': f"₹{item_dict.get('revenue', 0):,.2f}",
+                            'Average Value': f"₹{item_dict.get('avg_value', 0):,.2f}",
+                            'Percentage': f"{item_dict.get('percentage', 0):.1f}%" if item_dict.get('percentage') else 'N/A'
+                        })
+                    return csv_rows
+
+            elif view == "finance":
+                # Export revenue by status - these are plain dicts
+                revenue_data = get_data_field(data, 'revenue_by_status')
+                if revenue_data:
+                    # Calculate total for percentage
+                    total_revenue = sum(item.get('value', 0) for item in revenue_data)
+
+                    csv_rows = []
+                    for item in revenue_data:
+                        metadata = item.get('metadata', {}) or {}
+                        revenue = item.get('value', 0)
+                        percentage = (revenue / total_revenue * 100) if total_revenue > 0 else 0
+
+                        csv_rows.append({
+                            'Quote Status': item.get('label', 'N/A'),
+                            'Total Revenue': f"₹{revenue:,.2f}",
+                            'Quote Count': metadata.get('quote_count', 0),
+                            'Average Revenue': f"₹{metadata.get('avg_revenue', 0):,.2f}",
+                            'Percentage': f"{percentage:.1f}%"
+                        })
+                    return csv_rows
+
+            elif view == "customer":
+                # Export top customers by revenue
+                customer_data = get_data_field(data, 'top_customers_by_revenue')
+                if customer_data:
+                    csv_rows = []
+                    for item in customer_data:
+                        # Convert Pydantic model to dict if needed
+                        if hasattr(item, 'dict'):
+                            item_dict = item.dict()
+                        elif hasattr(item, 'model_dump'):
+                            item_dict = item.model_dump()
+                        else:
+                            item_dict = item
+
+                        csv_rows.append({
+                            'Customer Name': item_dict.get('customer_name', 'N/A'),
+                            'Total Revenue': f"₹{item_dict.get('revenue', 0):,.2f}",
+                            'Quote Count': item_dict.get('quote_count', 0),
+                            'Average Deal Size': f"₹{item_dict.get('avg_deal_size', 0):,.2f}",
+                            'Last Quote Date': item_dict.get('last_quote_date', 'N/A')
+                        })
+                    return csv_rows
+
+            elif view == "combined":
+                # Export top product-customer combinations
+                combo_data = get_data_field(data, 'top_combinations')
+                if combo_data:
+                    csv_rows = []
+                    for item in combo_data:
+                        # These are already dicts
+                        csv_rows.append({
+                            'Customer Name': item.get('customer_name', 'N/A'),
+                            'Product Type': item.get('product_type', 'N/A'),
+                            'Quote Count': item.get('quote_count', 0),
+                            'Total Revenue': f"₹{item.get('total_revenue', 0):,.2f}"
+                        })
+                    return csv_rows
+
+            return []
+
+        except Exception as e:
+            logger.error(f"Error converting to CSV: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return []
 
 
 
