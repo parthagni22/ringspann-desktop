@@ -16,10 +16,10 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 const CustomerAnalytics = ({ filters, onFilterChange }) => {
   const { data, loading, error } = useCustomerAnalytics(filters);
 
-  const handleExport = async (format) => {
-    const result = await exportAnalyticsData('customer', format, filters);
+  const handleExport = async () => {
+    const result = await exportAnalyticsData('customer', 'csv', filters);
     if (result.success) {
-      alert(`Data exported successfully as ${format.toUpperCase()}`);
+      alert(`Data exported successfully!\n\nFile: ${result.filename}\nLocation: data/exports/\n\n${result.message}`);
     } else {
       alert(`Export failed: ${result.error}`);
     }
@@ -69,19 +69,11 @@ const CustomerAnalytics = ({ filters, onFilterChange }) => {
       {/* Tab-Specific Customer Filter Panel */}
       <CustomerFilterPanel filters={filters} onFilterChange={onFilterChange} />
 
-      {/* Export Buttons */}
+      {/* Export Button */}
       <div style={styles.exportSection}>
         <Button
           variant="outline"
-          onClick={() => handleExport('json')}
-          style={styles.exportButton}
-        >
-          <Download className="w-4 h-4" />
-          <span style={styles.exportText}>Export JSON</span>
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => handleExport('csv')}
+          onClick={handleExport}
           style={styles.exportButton}
         >
           <Download className="w-4 h-4" />
