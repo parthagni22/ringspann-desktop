@@ -53,14 +53,10 @@ class AnalyticsService:
     
     def apply_date_filter(self, query, model, filters: AnalyticsFilters):
         """Apply date filtering to query"""
-        if filters.date_filter == "mtd":
-            start_date = datetime.now().replace(day=1, hour=0, minute=0, second=0)
+        if filters.date_filter == "today":
+            start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
             query = query.filter(model.created_at >= start_date)
-        
-        elif filters.date_filter == "ytd":
-            start_date = datetime.now().replace(month=1, day=1, hour=0, minute=0, second=0)
-            query = query.filter(model.created_at >= start_date)
-        
+
         elif filters.date_filter == "custom":
             if filters.start_date:
                 start = datetime.strptime(filters.start_date, "%Y-%m-%d")
@@ -69,7 +65,7 @@ class AnalyticsService:
                 end = datetime.strptime(filters.end_date, "%Y-%m-%d")
                 end = end.replace(hour=23, minute=59, second=59)
                 query = query.filter(model.created_at <= end)
-        
+
         return query
     
     def apply_status_filter(self, query, filters: AnalyticsFilters):
@@ -87,7 +83,13 @@ class AnalyticsService:
     def get_part_type_name(self, part_type: str) -> str:
         """Convert part type code to name"""
         return PART_TYPE_MAPPING.get(part_type, part_type)
-    
+
+    def get_part_type_code(self, product_name: str) -> str:
+        """Convert product name to part type code"""
+        # Reverse mapping from product name to code
+        reverse_map = {v: k for k, v in PART_TYPE_MAPPING.items() if k.isdigit()}
+        return reverse_map.get(product_name, product_name)
+
     def parse_commercial_items(self, items_json: str) -> List[Dict[str, Any]]:
         """Parse commercial quotation items JSON"""
         try:
@@ -181,11 +183,16 @@ class AnalyticsService:
         ).join(
             Project, TechnicalQuotation.quotation_number == Project.quotation_number
         )
-    
+
         query = self.apply_date_filter(query, Project, filters)
         query = self.apply_status_filter(query, filters)
         query = self.apply_customer_filter(query, filters)
-    
+
+        # Apply product_type filter
+        if filters.product_type and filters.product_type != "all":
+            part_code = self.get_part_type_code(filters.product_type)
+            query = query.filter(TechnicalQuotation.part_type == part_code)
+
         query = query.group_by(TechnicalQuotation.part_type)
     
         results = query.all()
@@ -204,20 +211,28 @@ class AnalyticsService:
     
     def get_revenue_by_product(self, filters: AnalyticsFilters) -> List[Dict[str, Any]]:
         """Get revenue breakdown by product type"""
-        
+
         # Get all commercial quotations with filters
         query = self.db.query(
             CommercialQuotation.quotation_number,
             CommercialQuotation.items,
-            CommercialQuotation.subtotal
+            CommercialQuotation.subtotal,
+            TechnicalQuotation.part_type
         ).join(
             Project, CommercialQuotation.quotation_number == Project.quotation_number
+        ).outerjoin(
+            TechnicalQuotation, CommercialQuotation.quotation_number == TechnicalQuotation.quotation_number
         )
-        
+
         query = self.apply_date_filter(query, Project, filters)
         query = self.apply_status_filter(query, filters)
         query = self.apply_customer_filter(query, filters)
-        
+
+        # Apply product_type filter
+        if filters.product_type and filters.product_type != "all":
+            part_code = self.get_part_type_code(filters.product_type)
+            query = query.filter(TechnicalQuotation.part_type == part_code)
+
         quotations = query.all()
         
         # Parse items and aggregate by product
@@ -262,7 +277,7 @@ class AnalyticsService:
     
     def get_product_trend(self, filters: AnalyticsFilters) -> List[Dict[str, Any]]:
         """Get product quotes trend over time"""
-        
+
         # Determine grouping (monthly or weekly based on date range)
         query = self.db.query(
             TechnicalQuotation.part_type,
@@ -271,12 +286,14 @@ class AnalyticsService:
         ).join(
             Project, TechnicalQuotation.quotation_number == Project.quotation_number
         )
-        
+
         query = self.apply_date_filter(query, Project, filters)
         query = self.apply_status_filter(query, filters)
-        
+        query = self.apply_customer_filter(query, filters)
+
         if filters.product_type and filters.product_type != "all":
-            query = query.filter(TechnicalQuotation.part_type == filters.product_type)
+            part_code = self.get_part_type_code(filters.product_type)
+            query = query.filter(TechnicalQuotation.part_type == part_code)
         
         query = query.group_by(TechnicalQuotation.part_type, 'period').order_by('period')
         
@@ -309,7 +326,7 @@ class AnalyticsService:
     
     def get_product_status_breakdown(self, filters: AnalyticsFilters) -> List[Dict[str, Any]]:
         """Get product quote status breakdown"""
-        
+
         query = self.db.query(
             TechnicalQuotation.part_type,
             Project.quote_status,
@@ -317,10 +334,16 @@ class AnalyticsService:
         ).join(
             Project, TechnicalQuotation.quotation_number == Project.quotation_number
         )
-        
+
         query = self.apply_date_filter(query, Project, filters)
+        query = self.apply_status_filter(query, filters)
         query = self.apply_customer_filter(query, filters)
-        
+
+        # Apply product_type filter
+        if filters.product_type and filters.product_type != "all":
+            part_code = self.get_part_type_code(filters.product_type)
+            query = query.filter(TechnicalQuotation.part_type == part_code)
+
         query = query.group_by(TechnicalQuotation.part_type, Project.quote_status)
         
         results = query.all()
@@ -430,7 +453,7 @@ class AnalyticsService:
         }
         
         # Get charts data
-        monthly_trend = self.get_monthly_revenue_trend(12, filters.quote_status)
+        monthly_trend = self.get_monthly_revenue_trend(filters)
         value_distribution = self.get_quote_value_distribution(filters)
         inquiry_timeline = self.get_inquiry_timeline(filters)
         
@@ -460,12 +483,14 @@ class AnalyticsService:
         
         query = self.apply_date_filter(query, Project, filters)
         query = self.apply_customer_filter(query, filters)
-        
+
         if filters.product_type and filters.product_type != "all":
             query = query.join(
                 TechnicalQuotation, Project.quotation_number == TechnicalQuotation.quotation_number
-            ).filter(TechnicalQuotation.part_type == filters.product_type)
-        
+            )
+            part_code = self.get_part_type_code(filters.product_type)
+            query = query.filter(TechnicalQuotation.part_type == part_code)
+
         query = query.group_by(Project.quote_status)
         
         results = query.all()
@@ -482,11 +507,9 @@ class AnalyticsService:
             for r in results
         ]
     
-    def get_monthly_revenue_trend(self, months: int, status_filter: str = "all") -> List[Dict[str, Any]]:
+    def get_monthly_revenue_trend(self, filters: AnalyticsFilters) -> List[Dict[str, Any]]:
         """Get monthly revenue trend"""
-        
-        start_date = datetime.now() - timedelta(days=months * 30)
-        
+
         query = self.db.query(
             func.strftime('%Y-%m', Project.created_at).label('month'),
             func.count(CommercialQuotation.id).label('quote_count'),
@@ -494,15 +517,23 @@ class AnalyticsService:
             func.avg(CommercialQuotation.total_amount).label('avg_revenue')
         ).join(
             CommercialQuotation, Project.quotation_number == CommercialQuotation.quotation_number
-        ).filter(
-            Project.created_at >= start_date
         )
-        
-        if status_filter and status_filter != "all":
-            query = query.filter(Project.quote_status == status_filter)
-        
+
+        # Apply ALL filters
+        query = self.apply_date_filter(query, Project, filters)
+        query = self.apply_status_filter(query, filters)
+        query = self.apply_customer_filter(query, filters)
+
+        # Apply product_type filter
+        if filters.product_type and filters.product_type != "all":
+            query = query.join(
+                TechnicalQuotation, Project.quotation_number == TechnicalQuotation.quotation_number
+            )
+            part_code = self.get_part_type_code(filters.product_type)
+            query = query.filter(TechnicalQuotation.part_type == part_code)
+
         query = query.group_by('month').order_by('month')
-        
+
         results = query.all()
         
         return [
@@ -520,16 +551,26 @@ class AnalyticsService:
     
     def get_quote_value_distribution(self, filters: AnalyticsFilters) -> List[Dict[str, Any]]:
         """Get distribution of quote values (histogram data)"""
-        
+
         query = self.db.query(
             CommercialQuotation.total_amount
         ).join(
             Project, CommercialQuotation.quotation_number == Project.quotation_number
         )
-        
+
+        # Apply ALL filters
         query = self.apply_date_filter(query, Project, filters)
         query = self.apply_status_filter(query, filters)
-        
+        query = self.apply_customer_filter(query, filters)
+
+        # Apply product_type filter
+        if filters.product_type and filters.product_type != "all":
+            query = query.join(
+                TechnicalQuotation, Project.quotation_number == TechnicalQuotation.quotation_number
+            )
+            part_code = self.get_part_type_code(filters.product_type)
+            query = query.filter(TechnicalQuotation.part_type == part_code)
+
         amounts = [r.total_amount for r in query.all() if r.total_amount]
         
         if not amounts:
@@ -559,7 +600,7 @@ class AnalyticsService:
     
     def get_inquiry_timeline(self, filters: AnalyticsFilters) -> List[Dict[str, Any]]:
         """Get inquiry to quotation timeline"""
-        
+
         # Use Project.created_at since inquiry_date doesn't exist
         query = self.db.query(
             Project.created_at,
@@ -569,10 +610,20 @@ class AnalyticsService:
         ).filter(
             Project.created_at.isnot(None)
         )
-        
+
+        # Apply ALL filters
         query = self.apply_date_filter(query, Project, filters)
         query = self.apply_status_filter(query, filters)
-        
+        query = self.apply_customer_filter(query, filters)
+
+        # Apply product_type filter
+        if filters.product_type and filters.product_type != "all":
+            query = query.join(
+                TechnicalQuotation, Project.quotation_number == TechnicalQuotation.quotation_number
+            )
+            part_code = self.get_part_type_code(filters.product_type)
+            query = query.filter(TechnicalQuotation.part_type == part_code)
+
         results = query.all()
         
         # Group by month for timeline
@@ -600,17 +651,29 @@ class AnalyticsService:
     
     def get_customer_analytics(self, filters: AnalyticsFilters) -> CustomerAnalyticsResponse:
         """Get complete customer analytics"""
-        
+
         # Get customer summary
         query = self.db.query(
             Project.customer_name,
             func.count(Project.id).label('quote_count'),
             func.max(Project.created_at).label('last_quote_date')
-        ).group_by(Project.customer_name)
-        
+        )
+
+        # Apply product_type filter if needed
+        if filters.product_type and filters.product_type != "all":
+            query = query.join(
+                TechnicalQuotation, Project.quotation_number == TechnicalQuotation.quotation_number
+            )
+            part_code = self.get_part_type_code(filters.product_type)
+            query = query.filter(TechnicalQuotation.part_type == part_code)
+
+        query = query.group_by(Project.customer_name)
+
+        # Apply other filters
         query = self.apply_date_filter(query, Project, filters)
         query = self.apply_status_filter(query, filters)
-        
+        query = self.apply_customer_filter(query, filters)
+
         customers = query.all()
         
         total_customers = len(customers)
@@ -690,12 +753,15 @@ class AnalyticsService:
         
         query = self.apply_date_filter(query, Project, filters)
         query = self.apply_status_filter(query, filters)
-        
+        query = self.apply_customer_filter(query, filters)
+
         if filters.product_type and filters.product_type != "all":
             query = query.join(
                 TechnicalQuotation, Project.quotation_number == TechnicalQuotation.quotation_number
-            ).filter(TechnicalQuotation.part_type == filters.product_type)
-        
+            )
+            part_code = self.get_part_type_code(filters.product_type)
+            query = query.filter(TechnicalQuotation.part_type == part_code)
+
         query = query.group_by(Project.customer_name)
         
         if sort_by == "revenue":
@@ -724,20 +790,25 @@ class AnalyticsService:
     
     def get_customer_status_breakdown(self, filters: AnalyticsFilters, limit: int) -> List[Dict[str, Any]]:
         """Get quote status breakdown per customer"""
-        
+
         query = self.db.query(
             Project.customer_name,
             Project.quote_status,
             func.count(Project.id).label('count')
         )
-        
+
+        # Apply ALL filters
         query = self.apply_date_filter(query, Project, filters)
-        
+        query = self.apply_status_filter(query, filters)
+        query = self.apply_customer_filter(query, filters)
+
         if filters.product_type and filters.product_type != "all":
             query = query.join(
                 TechnicalQuotation, Project.quotation_number == TechnicalQuotation.quotation_number
-            ).filter(TechnicalQuotation.part_type == filters.product_type)
-        
+            )
+            part_code = self.get_part_type_code(filters.product_type)
+            query = query.filter(TechnicalQuotation.part_type == part_code)
+
         query = query.group_by(Project.customer_name, Project.quote_status)
         
         results = query.all()
@@ -764,19 +835,28 @@ class AnalyticsService:
     
     def get_customer_activity_timeline(self, filters: AnalyticsFilters) -> List[Dict[str, Any]]:
         """Get customer activity timeline"""
-        
+
         query = self.db.query(
             Project.customer_name,
             Project.quotation_number,
             Project.created_at,
             Project.quote_status
         )
-        
+
+        # Apply ALL filters
         query = self.apply_date_filter(query, Project, filters)
         query = self.apply_status_filter(query, filters)
-        
+        query = self.apply_customer_filter(query, filters)
+
+        if filters.product_type and filters.product_type != "all":
+            query = query.join(
+                TechnicalQuotation, Project.quotation_number == TechnicalQuotation.quotation_number
+            )
+            part_code = self.get_part_type_code(filters.product_type)
+            query = query.filter(TechnicalQuotation.part_type == part_code)
+
         query = query.order_by(Project.created_at.desc())
-        
+
         results = query.all()
         
         return [

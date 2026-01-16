@@ -5,6 +5,18 @@ import { Calendar, Filter, RotateCcw } from 'lucide-react';
 const CombinedInsightsFilterPanel = ({ filters, onFilterChange }) => {
   const [localFilters, setLocalFilters] = useState(filters);
 
+  // Get max date (today)
+  const getMaxDate = () => {
+    return new Date().toISOString().split('T')[0];
+  };
+
+  // Get min date (365 days ago)
+  const getMinDate = () => {
+    const date = new Date();
+    date.setDate(date.getDate() - 365);
+    return date.toISOString().split('T')[0];
+  };
+
   const handleChange = (key, value) => {
     setLocalFilters(prev => ({ ...prev, [key]: value }));
   };
@@ -43,11 +55,7 @@ const CombinedInsightsFilterPanel = ({ filters, onFilterChange }) => {
           >
             <option value="all">All Time</option>
             <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="quarter">This Quarter</option>
-            <option value="year">This Year</option>
-            <option value="custom">Custom Range</option>
+            <option value="custom">Custom Range (Last 365 Days)</option>
           </select>
         </div>
 
@@ -75,6 +83,8 @@ const CombinedInsightsFilterPanel = ({ filters, onFilterChange }) => {
                 type="date"
                 value={localFilters.startDate || ''}
                 onChange={(e) => handleChange('startDate', e.target.value)}
+                min={getMinDate()}
+                max={getMaxDate()}
                 style={styles.dateInput}
               />
             </div>
@@ -87,6 +97,8 @@ const CombinedInsightsFilterPanel = ({ filters, onFilterChange }) => {
                 type="date"
                 value={localFilters.endDate || ''}
                 onChange={(e) => handleChange('endDate', e.target.value)}
+                min={getMinDate()}
+                max={getMaxDate()}
                 style={styles.dateInput}
               />
             </div>

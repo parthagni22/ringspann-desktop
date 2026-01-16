@@ -208,7 +208,8 @@ def get_customer_analytics(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     quote_status: str = "all",
-    product_type: str = "all"
+    product_type: str = "all",
+    customer: str = "all"
 ):
     """Get complete customer analytics"""
     try:
@@ -218,7 +219,8 @@ def get_customer_analytics(
             start_date=start_date,
             end_date=end_date,
             quote_status=quote_status,
-            product_type=product_type
+            product_type=product_type,
+            customer=customer
         )
         
         service = AnalyticsService(db)

@@ -25,15 +25,16 @@ const ProductFilterPanel = ({ filters, onFilterChange }) => {
     fetchCustomers();
   }, []);
 
-  // Calculate date range for custom (last 1 year)
+  // Get max date (today)
   const getMaxDate = () => {
     return new Date().toISOString().split('T')[0];
   };
 
+  // Get min date (365 days ago)
   const getMinDate = () => {
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    return oneYearAgo.toISOString().split('T')[0];
+    const date = new Date();
+    date.setDate(date.getDate() - 365);
+    return date.toISOString().split('T')[0];
   };
 
   const handleChange = (key, value) => {
@@ -46,7 +47,7 @@ const ProductFilterPanel = ({ filters, onFilterChange }) => {
 
   const handleReset = () => {
     const resetFilters = {
-      dateFilter: 'week', // Default: Last Week
+      dateFilter: 'all',
       startDate: null,
       endDate: null,
       quoteStatus: 'all',
@@ -75,11 +76,9 @@ const ProductFilterPanel = ({ filters, onFilterChange }) => {
             onChange={(e) => handleChange('dateFilter', e.target.value)}
             style={styles.select}
           >
-            <option value="week">Last Week (Default)</option>
-            <option value="month">This Month</option>
-            <option value="quarter">This Quarter</option>
-            <option value="year">This Year</option>
-            <option value="custom">Custom Range (Last 1 Year)</option>
+            <option value="all">All Time</option>
+            <option value="today">Today</option>
+            <option value="custom">Custom Range (Last 365 Days)</option>
           </select>
         </div>
 
@@ -110,8 +109,9 @@ const ProductFilterPanel = ({ filters, onFilterChange }) => {
             <option value="all">All Products</option>
             <option value="Brake Quotation">Brake Quotation</option>
             <option value="Backstop Quotation">Backstop Quotation</option>
-            <option value="Coupling Quotation">Coupling Quotation</option>
-            <option value="Other">Other</option>
+            <option value="Couple and Torque Limiter">Couple and Torque Limiter</option>
+            <option value="Locking Element for Conveyor">Locking Element for Conveyor</option>
+            <option value="Over Running Clutch">Over Running Clutch</option>
           </select>
         </div>
 
@@ -177,7 +177,7 @@ const ProductFilterPanel = ({ filters, onFilterChange }) => {
             </div>
           </div>
           <p style={styles.dateHint}>
-            * Custom date range limited to last 1 year
+            * Custom date range limited to last 365 days
           </p>
         </div>
       )}

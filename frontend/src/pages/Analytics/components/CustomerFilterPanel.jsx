@@ -1,9 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar, Filter, RotateCcw } from 'lucide-react';
 
 const CustomerFilterPanel = ({ filters, onFilterChange }) => {
   const [localFilters, setLocalFilters] = useState(filters);
+  const [customers, setCustomers] = useState([]);
+
+  // Fetch customers for dropdown
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const result = await window.eel.get_customers_for_analytics()();
+        if (result && result.success) {
+          setCustomers(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+      }
+    };
+    fetchCustomers();
+  }, []);
+
+  // Get max date (today)
+  const getMaxDate = () => {
+    return new Date().toISOString().split('T')[0];
+  };
+
+  // Get min date (365 days ago)
+  const getMinDate = () => {
+    const date = new Date();
+    date.setDate(date.getDate() - 365);
+    return date.toISOString().split('T')[0];
+  };
 
   const handleChange = (key, value) => {
     setLocalFilters(prev => ({ ...prev, [key]: value }));
@@ -45,11 +73,7 @@ const CustomerFilterPanel = ({ filters, onFilterChange }) => {
           >
             <option value="all">All Time</option>
             <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="quarter">This Quarter</option>
-            <option value="year">This Year</option>
-            <option value="custom">Custom Range</option>
+            <option value="custom">Custom Range (Last 365 Days)</option>
           </select>
         </div>
 
@@ -62,7 +86,11 @@ const CustomerFilterPanel = ({ filters, onFilterChange }) => {
             style={styles.select}
           >
             <option value="all">All Customers</option>
-            {/* Dynamic customer options will be loaded here */}
+            {customers.map((customer, index) => (
+              <option key={index} value={customer.customer_name}>
+                {customer.customer_name}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -106,6 +134,8 @@ const CustomerFilterPanel = ({ filters, onFilterChange }) => {
                 type="date"
                 value={localFilters.startDate || ''}
                 onChange={(e) => handleChange('startDate', e.target.value)}
+                min={getMinDate()}
+                max={getMaxDate()}
                 style={styles.dateInput}
               />
             </div>
@@ -118,6 +148,8 @@ const CustomerFilterPanel = ({ filters, onFilterChange }) => {
                 type="date"
                 value={localFilters.endDate || ''}
                 onChange={(e) => handleChange('endDate', e.target.value)}
+                min={getMinDate()}
+                max={getMaxDate()}
                 style={styles.dateInput}
               />
             </div>

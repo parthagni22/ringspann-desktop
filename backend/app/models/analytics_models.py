@@ -13,9 +13,9 @@ from datetime import datetime
 
 class AnalyticsFilters(BaseModel):
     """Common filters for all analytics endpoints"""
-    date_filter: str = Field(default="all", description="all | mtd | ytd | custom")
-    start_date: Optional[str] = Field(None, description="YYYY-MM-DD")
-    end_date: Optional[str] = Field(None, description="YYYY-MM-DD")
+    date_filter: str = Field(default="all", description="all | today | custom")
+    start_date: Optional[str] = Field(None, description="YYYY-MM-DD (custom range limited to last 365 days)")
+    end_date: Optional[str] = Field(None, description="YYYY-MM-DD (custom range limited to last 365 days)")
     quote_status: Optional[str] = Field("all", description="all | Budgetary | Active | Lost | Won")
     product_type: Optional[str] = "all"   #Optional[str] = Field("all", description="all | product type")
     customer: Optional[str] = Field("all", description="all | customer name")
