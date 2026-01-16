@@ -1,9 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar, Filter, RotateCcw } from 'lucide-react';
 
 const FinanceFilterPanel = ({ filters, onFilterChange }) => {
   const [localFilters, setLocalFilters] = useState(filters);
+  const [customers, setCustomers] = useState([]);
+
+  // Fetch customers for dropdown
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const result = await window.eel.get_customers_for_analytics()();
+        if (result && result.success) {
+          setCustomers(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+      }
+    };
+    fetchCustomers();
+  }, []);
 
   // Get max date (today)
   const getMaxDate = () => {
@@ -31,6 +47,8 @@ const FinanceFilterPanel = ({ filters, onFilterChange }) => {
       startDate: null,
       endDate: null,
       quoteStatus: 'all',
+      productType: 'all',
+      customer: 'all',
     };
     setLocalFilters(resetFilters);
     onFilterChange(resetFilters);
@@ -73,6 +91,40 @@ const FinanceFilterPanel = ({ filters, onFilterChange }) => {
             <option value="Active">Active</option>
             <option value="Won">Won</option>
             <option value="Lost">Lost</option>
+          </select>
+        </div>
+
+        {/* Product Type Filter */}
+        <div style={styles.filterGroup}>
+          <label style={styles.label}>Product Type</label>
+          <select
+            value={localFilters.productType}
+            onChange={(e) => handleChange('productType', e.target.value)}
+            style={styles.select}
+          >
+            <option value="all">All Products</option>
+            <option value="Brake Quotation">Brake Quotation</option>
+            <option value="Backstop Quotation">Backstop Quotation</option>
+            <option value="Couple and Torque Limiter">Couple and Torque Limiter</option>
+            <option value="Locking Element for Conveyor">Locking Element for Conveyor</option>
+            <option value="Over Running Clutch">Over Running Clutch</option>
+          </select>
+        </div>
+
+        {/* Customer Filter */}
+        <div style={styles.filterGroup}>
+          <label style={styles.label}>Customer</label>
+          <select
+            value={localFilters.customer}
+            onChange={(e) => handleChange('customer', e.target.value)}
+            style={styles.select}
+          >
+            <option value="all">All Customers</option>
+            {customers.map((customer, index) => (
+              <option key={index} value={customer.customer_name}>
+                {customer.customer_name}
+              </option>
+            ))}
           </select>
         </div>
 

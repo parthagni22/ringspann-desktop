@@ -28,6 +28,8 @@ const AnalyticsDashboard = () => {
     startDate: null,
     endDate: null,
     quoteStatus: 'all',
+    productType: 'all',
+    customer: 'all',
   });
 
   const [customerFilters, setCustomerFilters] = useState({
@@ -36,6 +38,7 @@ const AnalyticsDashboard = () => {
     endDate: null,
     customer: 'all',
     quoteStatus: 'all',
+    productType: 'all',
   });
 
   const [insightsFilters, setInsightsFilters] = useState({

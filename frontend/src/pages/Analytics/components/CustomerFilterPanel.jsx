@@ -48,6 +48,7 @@ const CustomerFilterPanel = ({ filters, onFilterChange }) => {
       endDate: null,
       customer: 'all',
       quoteStatus: 'all',
+      productType: 'all',
     };
     setLocalFilters(resetFilters);
     onFilterChange(resetFilters);
@@ -107,6 +108,23 @@ const CustomerFilterPanel = ({ filters, onFilterChange }) => {
             <option value="Active">Active</option>
             <option value="Won">Won</option>
             <option value="Lost">Lost</option>
+          </select>
+        </div>
+
+        {/* Product Type Filter */}
+        <div style={styles.filterGroup}>
+          <label style={styles.label}>Product Type</label>
+          <select
+            value={localFilters.productType}
+            onChange={(e) => handleChange('productType', e.target.value)}
+            style={styles.select}
+          >
+            <option value="all">All Products</option>
+            <option value="Brake Quotation">Brake Quotation</option>
+            <option value="Backstop Quotation">Backstop Quotation</option>
+            <option value="Couple and Torque Limiter">Couple and Torque Limiter</option>
+            <option value="Locking Element for Conveyor">Locking Element for Conveyor</option>
+            <option value="Over Running Clutch">Over Running Clutch</option>
           </select>
         </div>
 

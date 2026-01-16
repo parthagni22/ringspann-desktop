@@ -138,7 +138,8 @@ export const useCustomerAnalytics = (filters) => {
         filters.startDate || null,
         filters.endDate || null,
         filters.quoteStatus || 'all',
-        filters.productType || 'all'
+        filters.productType || 'all',
+        filters.customer || 'all'
       )();
 
       if (result && result.success) {
