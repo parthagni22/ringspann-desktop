@@ -195,14 +195,31 @@ export const useCombinedInsights = (filters) => {
   return { data, loading, error, refetch: fetchData };
 };
 
-export const exportAnalyticsData = async (view, format, filters) => {
+export const exportAnalyticsData = async (view, format = 'xlsx', filters) => {
   try {
+    // Get user information from localStorage
+    const userDataStr = localStorage.getItem('userData');
+    let userName = 'System User';
+    let userRegion = 'India';
+
+    if (userDataStr) {
+      try {
+        const userData = JSON.parse(userDataStr);
+        userName = userData.name || 'System User';
+        userRegion = userData.region || 'India';
+      } catch (e) {
+        console.warn('Could not parse user data:', e);
+      }
+    }
+
     const result = await eel.export_analytics_data(
       view,
       format,
       filters.dateFilter || 'all',
       filters.startDate || null,
-      filters.endDate || null
+      filters.endDate || null,
+      userName,
+      userRegion
     )();
 
     return result;

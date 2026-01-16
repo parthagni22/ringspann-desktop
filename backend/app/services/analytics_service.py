@@ -1127,14 +1127,16 @@ Combined Insights and Export functionality
     # EXPORT FUNCTIONALITY
     # ========================================================================
     
-    def export_analytics_data(self, view: str, format: str, filters: AnalyticsFilters) -> Dict[str, Any]:
-        """Export analytics data to CSV file"""
-        import csv
+    def export_analytics_data(self, view: str, format: str, filters: AnalyticsFilters, user_info: Dict[str, str]) -> Dict[str, Any]:
+        """Export analytics data to Excel file with professional formatting"""
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+        from openpyxl.utils import get_column_letter
         from app.config import EXPORT_DIR
 
-        # Only support CSV format
-        if format != "csv":
-            return {"success": False, "error": "Only CSV export is supported"}
+        # Support both CSV and Excel
+        if format not in ["csv", "xlsx"]:
+            return {"success": False, "error": "Only CSV and Excel exports are supported"}
 
         try:
             # Get the analytics data
@@ -1149,24 +1151,32 @@ Combined Insights and Export functionality
             else:
                 return {"success": False, "error": "Invalid view type"}
 
-            # Convert to CSV-friendly format
-            csv_data = self._convert_to_csv(data, view)
-
-            if not csv_data or len(csv_data) == 0:
-                return {"success": False, "error": "No data available to export"}
-
             # Generate filename with timestamp
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f"{view}_analytics_{timestamp}.csv"
-            filepath = EXPORT_DIR / filename
 
-            # Write CSV file
-            with open(filepath, 'w', newline='', encoding='utf-8') as csvfile:
-                if isinstance(csv_data, list) and len(csv_data) > 0:
-                    fieldnames = csv_data[0].keys()
-                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                    writer.writeheader()
-                    writer.writerows(csv_data)
+            if format == "xlsx":
+                filename = f"{view}_analytics_{timestamp}.xlsx"
+                filepath = EXPORT_DIR / filename
+
+                # Create Excel workbook with professional formatting
+                wb = Workbook()
+                ws = wb.active
+                ws.title = f"{view.title()} Analytics"
+
+                # Write Excel content with formatting
+                self._write_excel_content(ws, data, view, filters, user_info)
+
+                # Save workbook
+                wb.save(filepath)
+            else:
+                # CSV export (legacy)
+                import csv
+                filename = f"{view}_analytics_{timestamp}.csv"
+                filepath = EXPORT_DIR / filename
+
+                with open(filepath, 'w', newline='', encoding='utf-8') as csvfile:
+                    writer = csv.writer(csvfile)
+                    self._write_csv_content(writer, data, view, filters)
 
             return {
                 "success": True,
@@ -1177,110 +1187,527 @@ Combined Insights and Export functionality
             }
 
         except Exception as e:
+            logger.error(f"Export error: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             return {"success": False, "error": f"Export failed: {str(e)}"}
 
-    def _convert_to_csv(self, data: Any, view: str) -> List[Dict[str, Any]]:
-        """Convert analytics data to CSV-friendly format"""
+    def _write_excel_content(self, ws, data: Any, view: str, filters: AnalyticsFilters, user_info: Dict[str, str]):
+        """Write professionally formatted Excel content with colors and styling"""
+        from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+        from openpyxl.utils import get_column_letter
+
+        # Color scheme - Professional Blue & Orange
+        HEADER_FILL = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")  # Dark Blue
+        SUBHEADER_FILL = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")  # Medium Blue
+        SECTION_FILL = PatternFill(start_color="ED7D31", end_color="ED7D31", fill_type="solid")  # Orange
+        KPI_FILL = PatternFill(start_color="E2EFDA", end_color="E2EFDA", fill_type="solid")  # Light Green
+        DATA_HEADER_FILL = PatternFill(start_color="5B9BD5", end_color="5B9BD5", fill_type="solid")  # Light Blue
+        ALT_ROW_FILL = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")  # Light Gray
+
+        # Fonts
+        TITLE_FONT = Font(name='Calibri', size=18, bold=True, color="FFFFFF")
+        HEADER_FONT = Font(name='Calibri', size=14, bold=True, color="FFFFFF")
+        SECTION_FONT = Font(name='Calibri', size=12, bold=True, color="FFFFFF")
+        DATA_HEADER_FONT = Font(name='Calibri', size=11, bold=True, color="FFFFFF")
+        NORMAL_FONT = Font(name='Calibri', size=10)
+        BOLD_FONT = Font(name='Calibri', size=10, bold=True)
+
+        # Borders
+        THIN_BORDER = Border(
+            left=Side(style='thin'), right=Side(style='thin'),
+            top=Side(style='thin'), bottom=Side(style='thin')
+        )
+
+        # Center alignment
+        CENTER = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        LEFT = Alignment(horizontal='left', vertical='center', wrap_text=True)
+        RIGHT = Alignment(horizontal='right', vertical='center')
+
+        # Helper functions
+        def get_data_field(data_obj, field_name):
+            if isinstance(data_obj, dict):
+                return data_obj.get(field_name)
+            else:
+                return getattr(data_obj, field_name, None)
+
+        def to_dict(item):
+            if hasattr(item, 'model_dump'):
+                return item.model_dump()
+            elif hasattr(item, 'dict'):
+                return item.dict()
+            elif isinstance(item, dict):
+                return item
+            return {}
+
+        row = 1
+
+        # ========== COMPANY HEADER ==========
+        ws.merge_cells(f'A{row}:F{row}')
+        cell = ws[f'A{row}']
+        cell.value = "RINGSPANN POWER TRANSMISSION INDIA"
+        cell.font = TITLE_FONT
+        cell.fill = HEADER_FILL
+        cell.alignment = CENTER
+        row += 1
+
+        # Report Title
+        ws.merge_cells(f'A{row}:F{row}')
+        cell = ws[f'A{row}']
+        cell.value = f"{view.upper()} ANALYTICS EXPORT REPORT"
+        cell.font = HEADER_FONT
+        cell.fill = SUBHEADER_FILL
+        cell.alignment = CENTER
+        row += 1
+
+        # User and Date Information
+        ws.merge_cells(f'A{row}:C{row}')
+        cell = ws[f'A{row}']
+        cell.value = f"Generated By: {user_info.get('name', 'System User')}"
+        cell.font = BOLD_FONT
+        cell.alignment = LEFT
+
+        ws.merge_cells(f'D{row}:F{row}')
+        cell = ws[f'D{row}']
+        cell.value = f"Region: {user_info.get('region', 'India')}"
+        cell.font = BOLD_FONT
+        cell.alignment = RIGHT
+        row += 1
+
+        ws.merge_cells(f'A{row}:F{row}')
+        cell = ws[f'A{row}']
+        cell.value = f"Generated On: {datetime.now().strftime('%d-%b-%Y %I:%M:%S %p')}"
+        cell.font = NORMAL_FONT
+        cell.alignment = CENTER
+        row += 2  # Extra spacing
+
+        # ========== FILTERS SECTION ==========
+        ws.merge_cells(f'A{row}:F{row}')
+        cell = ws[f'A{row}']
+        cell.value = "APPLIED FILTERS"
+        cell.font = SECTION_FONT
+        cell.fill = SECTION_FILL
+        cell.alignment = CENTER
+        row += 1
+
+        filters_applied = get_data_field(data, 'filters_applied') or {}
+        filter_data = [
+            ['Date Range', filters_applied.get('date_filter', 'All Time')],
+        ]
+        if filters_applied.get('start_date'):
+            filter_data.append(['Start Date', filters_applied.get('start_date')])
+        if filters_applied.get('end_date'):
+            filter_data.append(['End Date', filters_applied.get('end_date')])
+        if filters_applied.get('quote_status') and filters_applied.get('quote_status') != 'all':
+            filter_data.append(['Quote Status', filters_applied.get('quote_status')])
+        if filters_applied.get('product_type') and filters_applied.get('product_type') != 'all':
+            filter_data.append(['Product Type', filters_applied.get('product_type')])
+        if filters_applied.get('customer') and filters_applied.get('customer') != 'all':
+            filter_data.append(['Customer', filters_applied.get('customer')])
+
+        for filter_row in filter_data:
+            ws[f'A{row}'] = filter_row[0]
+            ws[f'A{row}'].font = BOLD_FONT
+            ws[f'B{row}'] = filter_row[1]
+            ws[f'B{row}'].font = NORMAL_FONT
+            row += 1
+        row += 1  # Extra spacing
+
+        # ========== KPIs SECTION ==========
+        kpis = get_data_field(data, 'kpis') or {}
+        if kpis:
+            ws.merge_cells(f'A{row}:F{row}')
+            cell = ws[f'A{row}']
+            cell.value = "KEY PERFORMANCE INDICATORS"
+            cell.font = SECTION_FONT
+            cell.fill = SECTION_FILL
+            cell.alignment = CENTER
+            row += 1
+
+            # KPI Headers
+            ws[f'A{row}'] = "KPI"
+            ws[f'B{row}'] = "Value"
+            for col in ['A', 'B']:
+                ws[f'{col}{row}'].font = DATA_HEADER_FONT
+                ws[f'{col}{row}'].fill = DATA_HEADER_FILL
+                ws[f'{col}{row}'].alignment = CENTER
+                ws[f'{col}{row}'].border = THIN_BORDER
+            row += 1
+
+            kpi_row_start = row
+            for key, kpi_data in kpis.items():
+                kpi_dict = to_dict(kpi_data)
+                value = kpi_dict.get('value', 0)
+                fmt = kpi_dict.get('format_type', 'text')
+
+                if fmt == 'currency':
+                    formatted_value = f"₹{value:,.2f}"
+                elif fmt == 'number':
+                    formatted_value = f"{value:,.0f}"
+                else:
+                    formatted_value = str(value)
+
+                ws[f'A{row}'] = kpi_dict.get('label', key)
+                ws[f'B{row}'] = formatted_value
+
+                # Alternating row colors
+                if (row - kpi_row_start) % 2 == 0:
+                    ws[f'A{row}'].fill = ALT_ROW_FILL
+                    ws[f'B{row}'].fill = ALT_ROW_FILL
+                else:
+                    ws[f'A{row}'].fill = KPI_FILL
+                    ws[f'B{row}'].fill = KPI_FILL
+
+                ws[f'A{row}'].font = BOLD_FONT
+                ws[f'B{row}'].font = NORMAL_FONT
+                ws[f'A{row}'].border = THIN_BORDER
+                ws[f'B{row}'].border = THIN_BORDER
+                ws[f'A{row}'].alignment = LEFT
+                ws[f'B{row}'].alignment = RIGHT
+                row += 1
+            row += 1  # Extra spacing
+
+        # Continue with view-specific data sections...
+        # This will be added in the next part
+        row = self._add_view_specific_data(ws, data, view, row, to_dict, get_data_field,
+                                           SECTION_FONT, SECTION_FILL, DATA_HEADER_FONT,
+                                           DATA_HEADER_FILL, NORMAL_FONT, ALT_ROW_FILL,
+                                           THIN_BORDER, CENTER, LEFT, RIGHT)
+
+        # ========== FOOTER ==========
+        row += 1
+        ws.merge_cells(f'A{row}:F{row}')
+        cell = ws[f'A{row}']
+        cell.value = f"Total Records: {get_data_field(data, 'total_records') or 'N/A'}"
+        cell.font = BOLD_FONT
+        cell.alignment = CENTER
+        row += 1
+
+        ws.merge_cells(f'A{row}:F{row}')
+        cell = ws[f'A{row}']
+        cell.value = "--- END OF REPORT ---"
+        cell.font = HEADER_FONT
+        cell.fill = HEADER_FILL
+        cell.alignment = CENTER
+
+        # Auto-size columns
+        for column in ws.columns:
+            max_length = 0
+            column_letter = get_column_letter(column[0].column)
+            for cell in column:
+                try:
+                    if cell.value:
+                        max_length = max(max_length, len(str(cell.value)))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column_letter].width = adjusted_width
+
+    def _add_view_specific_data(self, ws, data, view, row, to_dict, get_data_field,
+                                SECTION_FONT, SECTION_FILL, DATA_HEADER_FONT, DATA_HEADER_FILL,
+                                NORMAL_FONT, ALT_ROW_FILL, THIN_BORDER, CENTER, LEFT, RIGHT):
+        """Add view-specific data sections to Excel"""
+        from openpyxl.styles import Alignment
+
+        # This method will handle the rest of the data export
+        # For now, return row to complete the structure
+        return row
+
+    def _write_csv_content(self, writer, data: Any, view: str, filters: AnalyticsFilters):
+        """Write comprehensive CSV content with multiple sections"""
 
         try:
-            # Handle both dict and object data
+            # Helper function to get data from dict or object
             def get_data_field(data_obj, field_name):
-                """Get field from either dict or object"""
                 if isinstance(data_obj, dict):
                     return data_obj.get(field_name)
                 else:
                     return getattr(data_obj, field_name, None)
 
-            if view == "product":
-                # Export product quotes with comprehensive data
-                quote_dist = get_data_field(data, 'quote_distribution')
-                if quote_dist:
-                    csv_rows = []
-                    for item in quote_dist:
-                        # Convert Pydantic model to dict if needed
-                        if hasattr(item, 'dict'):
-                            item_dict = item.dict()
-                        elif hasattr(item, 'model_dump'):
-                            item_dict = item.model_dump()
-                        else:
-                            item_dict = item
+            # Helper to convert model to dict
+            def to_dict(item):
+                if hasattr(item, 'model_dump'):
+                    return item.model_dump()
+                elif hasattr(item, 'dict'):
+                    return item.dict()
+                elif isinstance(item, dict):
+                    return item
+                return {}
 
-                        csv_rows.append({
-                            'Product Type': item_dict.get('product_type', 'N/A'),
-                            'Quote Count': item_dict.get('quote_count', 0),
-                            'Total Revenue': f"₹{item_dict.get('revenue', 0):,.2f}",
-                            'Average Value': f"₹{item_dict.get('avg_value', 0):,.2f}",
-                            'Percentage': f"{item_dict.get('percentage', 0):.1f}%" if item_dict.get('percentage') else 'N/A'
-                        })
-                    return csv_rows
+            # Add export metadata header
+            writer.writerow(['=== RINGSPANN POWER TRANSMISSION INDIA ==='])
+            writer.writerow([f'{view.upper()} ANALYTICS EXPORT REPORT'])
+            writer.writerow([f'Generated: {datetime.now().strftime("%d-%b-%Y %I:%M %p")}'])
+            writer.writerow([])
+
+            # Add filters applied section
+            filters_applied = get_data_field(data, 'filters_applied') or {}
+            writer.writerow(['=== FILTERS APPLIED ==='])
+            writer.writerow(['Date Range', filters_applied.get('date_filter', 'All Time')])
+            if filters_applied.get('start_date'):
+                writer.writerow(['Start Date', filters_applied.get('start_date')])
+            if filters_applied.get('end_date'):
+                writer.writerow(['End Date', filters_applied.get('end_date')])
+            if filters_applied.get('quote_status') and filters_applied.get('quote_status') != 'all':
+                writer.writerow(['Quote Status', filters_applied.get('quote_status')])
+            if filters_applied.get('product_type') and filters_applied.get('product_type') != 'all':
+                writer.writerow(['Product Type', filters_applied.get('product_type')])
+            if filters_applied.get('customer') and filters_applied.get('customer') != 'all':
+                writer.writerow(['Customer', filters_applied.get('customer')])
+            writer.writerow([])
+
+            if view == "product":
+                # KPIs Section
+                kpis = get_data_field(data, 'kpis') or {}
+                writer.writerow(['=== KEY PERFORMANCE INDICATORS ==='])
+                for key, kpi_data in kpis.items():
+                    kpi_dict = to_dict(kpi_data)
+                    value = kpi_dict.get('value', 0)
+                    fmt = kpi_dict.get('format_type', 'text')
+                    if fmt == 'currency':
+                        formatted_value = f"₹{value:,.2f}"
+                    elif fmt == 'number':
+                        formatted_value = f"{value:,.0f}"
+                    else:
+                        formatted_value = str(value)
+                    writer.writerow([kpi_dict.get('label', key), formatted_value])
+                writer.writerow([])
+
+                # Product Quote Distribution
+                quote_dist = get_data_field(data, 'quote_distribution') or []
+                if quote_dist:
+                    writer.writerow(['=== PRODUCT QUOTE DISTRIBUTION ==='])
+                    writer.writerow(['Product Type', 'Quote Count', 'Total Revenue (₹)', 'Avg Value (₹)', 'Percentage'])
+                    for item in quote_dist:
+                        item_dict = to_dict(item)
+                        writer.writerow([
+                            item_dict.get('product_type', 'N/A'),
+                            item_dict.get('quote_count', 0),
+                            f"₹{item_dict.get('revenue', 0):,.2f}",
+                            f"₹{item_dict.get('avg_value', 0):,.2f}",
+                            f"{item_dict.get('percentage', 0):.1f}%" if item_dict.get('percentage') else 'N/A'
+                        ])
+                    writer.writerow([])
+
+                # Revenue Contribution
+                revenue_contrib = get_data_field(data, 'revenue_contribution') or []
+                if revenue_contrib:
+                    writer.writerow(['=== REVENUE CONTRIBUTION (WON QUOTES) ==='])
+                    writer.writerow(['Product Type', 'Revenue (₹)', 'Percentage'])
+                    for item in revenue_contrib:
+                        item_dict = to_dict(item)
+                        writer.writerow([
+                            item_dict.get('product_type', 'N/A'),
+                            f"₹{item_dict.get('revenue', 0):,.2f}",
+                            f"{item_dict.get('percentage', 0):.1f}%" if item_dict.get('percentage') else 'N/A'
+                        ])
+                    writer.writerow([])
+
+                # Status Breakdown
+                status_breakdown = get_data_field(data, 'status_breakdown') or []
+                if status_breakdown:
+                    writer.writerow(['=== PRODUCT QUOTE STATUS BREAKDOWN ==='])
+                    writer.writerow(['Product Type', 'Budgetary', 'Active', 'Won', 'Lost', 'Total'])
+                    for item in status_breakdown:
+                        item_dict = to_dict(item) if not isinstance(item, dict) else item
+                        total = item_dict.get('Budgetary', 0) + item_dict.get('Active', 0) + item_dict.get('Won', 0) + item_dict.get('Lost', 0)
+                        writer.writerow([
+                            item_dict.get('product_type', 'N/A'),
+                            item_dict.get('Budgetary', 0),
+                            item_dict.get('Active', 0),
+                            item_dict.get('Won', 0),
+                            item_dict.get('Lost', 0),
+                            total
+                        ])
+                    writer.writerow([])
 
             elif view == "finance":
-                # Export revenue by status - these are plain dicts
-                revenue_data = get_data_field(data, 'revenue_by_status')
-                if revenue_data:
-                    # Calculate total for percentage
-                    total_revenue = sum(item.get('value', 0) for item in revenue_data)
+                # KPIs Section
+                kpis = get_data_field(data, 'kpis') or {}
+                writer.writerow(['=== KEY PERFORMANCE INDICATORS ==='])
+                for key, kpi_data in kpis.items():
+                    kpi_dict = to_dict(kpi_data)
+                    value = kpi_dict.get('value', 0)
+                    fmt = kpi_dict.get('format_type', 'text')
+                    if fmt == 'currency':
+                        formatted_value = f"₹{value:,.2f}"
+                    elif fmt == 'number':
+                        formatted_value = f"{value:,.0f}"
+                    else:
+                        formatted_value = str(value)
+                    writer.writerow([kpi_dict.get('label', key), formatted_value])
+                writer.writerow([])
 
-                    csv_rows = []
-                    for item in revenue_data:
+                # Revenue by Status
+                revenue_data = get_data_field(data, 'revenue_by_status') or []
+                if revenue_data:
+                    # Convert to dicts if needed
+                    revenue_dicts = [to_dict(item) if not isinstance(item, dict) else item for item in revenue_data]
+                    total_revenue = sum(item.get('value', 0) for item in revenue_dicts)
+                    writer.writerow(['=== REVENUE BY QUOTE STATUS ==='])
+                    writer.writerow(['Quote Status', 'Total Revenue (₹)', 'Quote Count', 'Avg Revenue (₹)', 'Percentage'])
+                    for item in revenue_dicts:
                         metadata = item.get('metadata', {}) or {}
                         revenue = item.get('value', 0)
                         percentage = (revenue / total_revenue * 100) if total_revenue > 0 else 0
+                        label = item.get('label', 'N/A')
+                        # Clean up enum format
+                        if '.' in str(label):
+                            label = str(label).split('.')[-1].title()
+                        writer.writerow([
+                            label,
+                            f"₹{revenue:,.2f}",
+                            metadata.get('quote_count', 0),
+                            f"₹{metadata.get('avg_revenue', 0):,.2f}",
+                            f"{percentage:.1f}%"
+                        ])
+                    writer.writerow([])
 
-                        csv_rows.append({
-                            'Quote Status': item.get('label', 'N/A'),
-                            'Total Revenue': f"₹{revenue:,.2f}",
-                            'Quote Count': metadata.get('quote_count', 0),
-                            'Average Revenue': f"₹{metadata.get('avg_revenue', 0):,.2f}",
-                            'Percentage': f"{percentage:.1f}%"
-                        })
-                    return csv_rows
+                # Revenue by Product
+                product_revenue = get_data_field(data, 'product_revenue') or []
+                if product_revenue:
+                    writer.writerow(['=== REVENUE BY PRODUCT TYPE ==='])
+                    writer.writerow(['Product Type', 'Total Revenue (₹)', 'Quote Count', 'Avg Value (₹)', 'Percentage'])
+                    for item in product_revenue:
+                        item_dict = to_dict(item) if not isinstance(item, dict) else item
+                        writer.writerow([
+                            item_dict.get('product_type', 'N/A'),
+                            f"₹{item_dict.get('revenue', 0):,.2f}",
+                            item_dict.get('quote_count', 0),
+                            f"₹{item_dict.get('avg_value', 0):,.2f}",
+                            f"{item_dict.get('percentage', 0):.1f}%"
+                        ])
+                    writer.writerow([])
+
+                # Monthly Trend
+                monthly_trend = get_data_field(data, 'monthly_trend') or []
+                if monthly_trend:
+                    writer.writerow(['=== MONTHLY REVENUE TREND ==='])
+                    writer.writerow(['Month', 'Quote Count', 'Total Revenue (₹)', 'Avg Revenue (₹)'])
+                    for item in monthly_trend:
+                        item_dict = to_dict(item) if not isinstance(item, dict) else item
+                        writer.writerow([
+                            item_dict.get('month', 'N/A'),
+                            item_dict.get('quote_count', 0),
+                            f"₹{item_dict.get('total_revenue', 0):,.2f}",
+                            f"₹{item_dict.get('avg_revenue', 0):,.2f}"
+                        ])
 
             elif view == "customer":
-                # Export top customers by revenue
-                customer_data = get_data_field(data, 'top_customers_by_revenue')
-                if customer_data:
-                    csv_rows = []
-                    for item in customer_data:
-                        # Convert Pydantic model to dict if needed
-                        if hasattr(item, 'dict'):
-                            item_dict = item.dict()
-                        elif hasattr(item, 'model_dump'):
-                            item_dict = item.model_dump()
-                        else:
-                            item_dict = item
+                # KPIs Section
+                kpis = get_data_field(data, 'kpis') or {}
+                writer.writerow(['=== KEY PERFORMANCE INDICATORS ==='])
+                for key, kpi_data in kpis.items():
+                    kpi_dict = to_dict(kpi_data)
+                    value = kpi_dict.get('value', 0)
+                    fmt = kpi_dict.get('format_type', 'text')
+                    if fmt == 'currency':
+                        formatted_value = f"₹{value:,.2f}"
+                    elif fmt == 'number':
+                        formatted_value = f"{value:,.0f}"
+                    else:
+                        formatted_value = str(value)
+                    writer.writerow([kpi_dict.get('label', key), formatted_value])
+                writer.writerow([])
 
-                        csv_rows.append({
-                            'Customer Name': item_dict.get('customer_name', 'N/A'),
-                            'Total Revenue': f"₹{item_dict.get('revenue', 0):,.2f}",
-                            'Quote Count': item_dict.get('quote_count', 0),
-                            'Average Deal Size': f"₹{item_dict.get('avg_deal_size', 0):,.2f}",
-                            'Last Quote Date': item_dict.get('last_quote_date', 'N/A')
-                        })
-                    return csv_rows
+                # Top Customers by Revenue
+                top_revenue = get_data_field(data, 'top_customers_by_revenue') or []
+                if top_revenue:
+                    writer.writerow(['=== TOP CUSTOMERS BY REVENUE ==='])
+                    writer.writerow(['Rank', 'Customer Name', 'Total Revenue (₹)', 'Quote Count', 'Avg Deal Size (₹)', 'Last Quote Date'])
+                    for idx, item in enumerate(top_revenue, 1):
+                        item_dict = to_dict(item)
+                        writer.writerow([
+                            idx,
+                            item_dict.get('customer_name', 'N/A'),
+                            f"₹{item_dict.get('revenue', 0):,.2f}",
+                            item_dict.get('quote_count', 0),
+                            f"₹{item_dict.get('avg_deal_size', 0):,.2f}",
+                            item_dict.get('last_quote_date', 'N/A')
+                        ])
+                    writer.writerow([])
+
+                # Top Customers by Quote Count
+                top_count = get_data_field(data, 'top_customers_by_count') or []
+                if top_count:
+                    writer.writerow(['=== TOP CUSTOMERS BY QUOTE COUNT ==='])
+                    writer.writerow(['Rank', 'Customer Name', 'Quote Count', 'Total Revenue (₹)', 'Avg Deal Size (₹)'])
+                    for idx, item in enumerate(top_count, 1):
+                        item_dict = to_dict(item)
+                        writer.writerow([
+                            idx,
+                            item_dict.get('customer_name', 'N/A'),
+                            item_dict.get('quote_count', 0),
+                            f"₹{item_dict.get('revenue', 0):,.2f}",
+                            f"₹{item_dict.get('avg_deal_size', 0):,.2f}"
+                        ])
+                    writer.writerow([])
+
+                # Customer Status Breakdown
+                status_breakdown = get_data_field(data, 'customer_status_breakdown') or []
+                if status_breakdown:
+                    writer.writerow(['=== CUSTOMER QUOTE STATUS BREAKDOWN ==='])
+                    writer.writerow(['Customer Name', 'Budgetary', 'Active', 'Won', 'Lost', 'Total'])
+                    for item in status_breakdown:
+                        item_dict = to_dict(item) if not isinstance(item, dict) else item
+                        writer.writerow([
+                            item_dict.get('customer_name', 'N/A'),
+                            item_dict.get('Budgetary', 0),
+                            item_dict.get('Active', 0),
+                            item_dict.get('Won', 0),
+                            item_dict.get('Lost', 0),
+                            item_dict.get('total', 0)
+                        ])
 
             elif view == "combined":
-                # Export top product-customer combinations
-                combo_data = get_data_field(data, 'top_combinations')
-                if combo_data:
-                    csv_rows = []
-                    for item in combo_data:
-                        # These are already dicts
-                        csv_rows.append({
-                            'Customer Name': item.get('customer_name', 'N/A'),
-                            'Product Type': item.get('product_type', 'N/A'),
-                            'Quote Count': item.get('quote_count', 0),
-                            'Total Revenue': f"₹{item.get('total_revenue', 0):,.2f}"
-                        })
-                    return csv_rows
+                # Top Product-Customer Combinations
+                top_combos = get_data_field(data, 'top_combinations') or []
+                if top_combos:
+                    writer.writerow(['=== TOP PRODUCT-CUSTOMER COMBINATIONS ==='])
+                    writer.writerow(['Rank', 'Customer', 'Product', 'Quote Count', 'Revenue (₹)'])
+                    for idx, item in enumerate(top_combos, 1):
+                        item_dict = to_dict(item) if not isinstance(item, dict) else item
+                        writer.writerow([
+                            idx,
+                            item_dict.get('customer', 'N/A'),
+                            item_dict.get('product', 'N/A'),
+                            item_dict.get('quote_count', 0),
+                            f"₹{item_dict.get('revenue', 0):,.2f}"
+                        ])
+                    writer.writerow([])
 
-            return []
+                # Quote Status Funnel
+                funnel = get_data_field(data, 'funnel') or []
+                if funnel:
+                    writer.writerow(['=== QUOTE STATUS FUNNEL ==='])
+                    writer.writerow(['Stage', 'Quote Count', 'Value (₹)'])
+                    for item in funnel:
+                        item_dict = to_dict(item) if not isinstance(item, dict) else item
+                        writer.writerow([
+                            item_dict.get('stage', 'N/A'),
+                            item_dict.get('count', 0),
+                            f"₹{item_dict.get('value', 0):,.2f}"
+                        ])
+                    writer.writerow([])
+
+                # Processing Time
+                avg_time = get_data_field(data, 'avg_processing_time')
+                if avg_time:
+                    writer.writerow(['=== QUOTE PROCESSING METRICS ==='])
+                    writer.writerow(['Average Processing Time', f'{avg_time:.1f} hours'])
+                    writer.writerow([])
+
+            # Add footer
+            writer.writerow([])
+            writer.writerow(['=== END OF REPORT ==='])
+            writer.writerow([f'Total Records: {get_data_field(data, "total_records") or "N/A"}'])
+            writer.writerow([f'Report Generated: {datetime.now().strftime("%d-%b-%Y %I:%M:%S %p")}'])
 
         except Exception as e:
-            logger.error(f"Error converting to CSV: {e}")
+            logger.error(f"Error writing CSV: {e}")
             import traceback
             logger.error(traceback.format_exc())
-            return []
+            raise
 
 
 

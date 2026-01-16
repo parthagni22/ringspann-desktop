@@ -404,12 +404,14 @@ def get_quote_velocity(months: int = 12):
 @eel.expose
 def export_analytics_data(
     view: str,
-    format: str = "json",
+    format: str = "xlsx",
     date_filter: str = "all",
     start_date: Optional[str] = None,
-    end_date: Optional[str] = None
+    end_date: Optional[str] = None,
+    user_name: str = "System User",
+    user_region: str = "India"
 ):
-    """Export analytics data"""
+    """Export analytics data with user information"""
     try:
         db = SessionLocal()
         filters = AnalyticsFilters(
@@ -417,12 +419,17 @@ def export_analytics_data(
             start_date=start_date,
             end_date=end_date
         )
-        
+
+        user_info = {
+            "name": user_name,
+            "region": user_region
+        }
+
         service = AnalyticsService(db)
-        result = service.export_analytics_data(view, format, filters)
-        
+        result = service.export_analytics_data(view, format, filters, user_info)
+
         db.close()
-        
+
         return result
     except Exception as e:
         logger.error(f"Error in export_analytics_data: {e}")

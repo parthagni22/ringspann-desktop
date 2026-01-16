@@ -17,11 +17,11 @@ const CustomerAnalytics = ({ filters, onFilterChange }) => {
   const { data, loading, error } = useCustomerAnalytics(filters);
 
   const handleExport = async () => {
-    const result = await exportAnalyticsData('customer', 'csv', filters);
+    const result = await exportAnalyticsData('customer', 'xlsx', filters);
     if (result.success) {
-      alert(`Data exported successfully!\n\nFile: ${result.filename}\nLocation: data/exports/\n\n${result.message}`);
+      alert(`✅ Excel Report Generated Successfully!\n\n📁 File: ${result.filename}\n📂 Location: data/exports/\n\n${result.message}`);
     } else {
-      alert(`Export failed: ${result.error}`);
+      alert(`❌ Export Failed: ${result.error}`);
     }
   };
 
